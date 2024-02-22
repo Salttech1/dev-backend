@@ -1,0 +1,40 @@
+package kraheja.commons.entity;
+
+import java.io.Serializable;
+
+import javax.persistence.Column;
+import javax.persistence.Embeddable;
+
+import org.hibernate.annotations.Type;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Embeddable
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+
+public class OutchqCK implements Serializable{
+
+	private static final long serialVersionUID = 1L;
+
+	@Column
+	@Type(type = "kraheja.commons.utils.CharType")
+	private String outchqProprietor ; 
+
+	@Column
+	@Type(type = "kraheja.commons.utils.CharType")
+	private String outchqCoy ; 
+
+	@Column
+	@Type(type = "kraheja.commons.utils.CharType")
+	private String outchqBank ; 
+
+	@Column
+	@Type(type = "kraheja.commons.utils.CharType")
+	private String outchqNum ; 
+}

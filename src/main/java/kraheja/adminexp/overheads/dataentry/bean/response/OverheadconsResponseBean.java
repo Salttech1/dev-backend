@@ -1,0 +1,44 @@
+package kraheja.adminexp.overheads.dataentry.bean.response;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
+import kraheja.commons.bean.response.PartyResponseBean;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@Builder
+@JsonInclude(Include.NON_NULL)
+@NoArgsConstructor
+@AllArgsConstructor
+
+public class OverheadconsResponseBean {
+	private String ohdhbillcoy ;
+	private String ohdhbilltype ;
+	private String ohdhbldgcode ;
+	private String ohdhconno ;
+	private String ohdhconnocode ;
+	private String ohdhconsumerno ;
+	private Double ohdhdepositeamt ;
+	private String ohdhflatnum ;
+	private String ohdhload ;
+	private String ohdhlocation ;
+	private String ohdhpaycoy ;
+	private String ohdhsite ;
+	private String ohdhstatus ;
+	private String ohdhtmpmeteryn ;
+	private LocalDateTime ohdhtoday ;
+	private String ohdhuserid ;
+	private String ohdhvacantflatyn ;
+	
+	private List<OverheadmeterResponseBean> overheadmeterResponseBeanList; 
+	private LocationResponseBean locationResponseBean;
+	
+}
