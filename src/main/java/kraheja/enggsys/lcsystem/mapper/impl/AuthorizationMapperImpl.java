@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import kraheja.commons.filter.GenericAuditContextHolder;
@@ -19,7 +20,9 @@ import kraheja.enggsys.lcsystem.mapper.AuthorizationMapper;
 import kraheja.enggsys.lcsystem.payload.db.SupplierDBResponse;
 import kraheja.enggsys.lcsystem.payload.request.AuthorizationRequest;
 import kraheja.enggsys.lcsystem.payload.request.LcDetails;
+import lombok.extern.log4j.Log4j2;
 
+@Log4j2
 @Service
 public class AuthorizationMapperImpl implements AuthorizationMapper {
 
@@ -186,6 +189,10 @@ public class AuthorizationMapperImpl implements AuthorizationMapper {
 		List<Lcauthboe> lcauthBoeList = new ArrayList<>();
 		Integer slrNo = 1 ;
 		for (LcDetails lcDetails : lcDetailsList) {
+			log.debug("lcDetails: {}", lcDetails);
+			if (StringUtils.isNoneEmpty(lcDetails.getDutyFreeNo())) {
+				lcDetails.setEpcgNo("DUTYFREE");
+			}
 			lcauthBoeList.add(Lcauthboe.builder()
 					.lcauthboeCK(LcauthboeCK.builder().lcabAuthnum(authNum).lcabSrno(slrNo).build())
 					.lcabBldgcode(bldgCode)

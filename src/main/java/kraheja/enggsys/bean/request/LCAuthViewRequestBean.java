@@ -16,6 +16,7 @@ import lombok.NoArgsConstructor;
 
 public class LCAuthViewRequestBean {
 
+	
 	private Boolean isUnprintedLCAuthChecked ;
 	private String dateFrom ;
 	private String dateTo ;

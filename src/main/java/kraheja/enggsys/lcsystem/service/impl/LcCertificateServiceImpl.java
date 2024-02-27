@@ -332,5 +332,8 @@ public class LcCertificateServiceImpl implements LcCertificateService {
 		log.debug("Lccert entity ready to save: {}", lccert);
 		lccertRepository.save(lccert);
 	}
-
+	@Override
+	public String fetchLastCertficateNo(String recId) {
+		return lccertRepository.fetchLastCertNumber(recId.trim());
+	}
 }

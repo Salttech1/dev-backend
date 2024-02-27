@@ -16,9 +16,10 @@ import lombok.NoArgsConstructor;
 
 public class LCAuthPrintRequestBean {
 
-	private Boolean isUnprintedLCAuths;
-	private String LCauthDateFrom;
-	private String LCauthDateTo;
-	private String LCauthNumberFrom;
-	private String LCauthNumberTo;
+	private Boolean isUnprintedAuths;
+	private String authDateFrom;
+	private String authDateTo;
+	private String authNumberFrom;
+	private String authNumberTo;
 }
+

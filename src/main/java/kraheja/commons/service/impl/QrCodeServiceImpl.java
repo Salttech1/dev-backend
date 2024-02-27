@@ -28,12 +28,6 @@ import com.google.zxing.BarcodeFormat;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 
-import kraheja.adminexp.billing.dataentry.invoiceCreation.entity.Invoiceheader;
-import kraheja.adminexp.billing.dataentry.invoiceCreation.repository.InvoiceheaderRepository;
-import kraheja.commons.bean.response.ServiceResponseBean;
-import kraheja.commons.service.QrCodeService;
-import kraheja.commons.utils.CommonConstraints;
-
 @Service
 public class QrCodeServiceImpl implements QrCodeService {
 

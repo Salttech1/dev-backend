@@ -44,7 +44,7 @@ public class AdmbillhRequestBean {
 	private String paidref ;
 	private String partycode ;
 	private String partytype ;
-	private LocalDate passedon ;
+	private LocalDateTime passedon ;
 	private String project ;
 	private LocalDate rundate ;
 	private String ser ;

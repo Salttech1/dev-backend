@@ -48,28 +48,23 @@ public class AdminBillCancellationServiceImpl implements AdminBillCancellationSe
 	private final ActrandRepository actrandRepository;
 	private final AddressRepository addressRepository;
 	private final PartyRepository partyRepository;
-	private final CompanyRepository companyRepository;
 	private final BuildingRepository buildingRepository;
-	private final GenericAccountingLogic genericAccountingLogic;
 	private final AdmadvanceRepository1 admadvanceRepository;
 	private final ActranhRepository actranhRepository;
 	private final EntityRepository entityRepository;
 
 	public AdminBillCancellationServiceImpl(AdmbillhRepository admbillhRepository,
 			AdmbilldRepository admbilldRepository, ActrandRepository actrandRepository, PartyRepository partyRepository,
-			AddressRepository addressRepository, CompanyRepository companyRepository,
-			BuildingRepository buildingRepository, GenericAccountingLogic genericAccountingLogic,
+			AddressRepository addressRepository, BuildingRepository buildingRepository,
 			ActranhRepository actranhRepository, AdmadvanceRepository1 admadvanceRepository,
 			EntityRepository entityRepository) {
 		this.admbillhRepository = admbillhRepository;
 		this.admbilldRepository = admbilldRepository;
 		this.actranhRepository = actranhRepository;
 		this.actrandRepository = actrandRepository;
-		this.companyRepository = companyRepository;
 		this.buildingRepository = buildingRepository;
 		this.addressRepository = addressRepository;
 		this.partyRepository = partyRepository;
-		this.genericAccountingLogic = genericAccountingLogic;
 		this.admadvanceRepository = admadvanceRepository;
 		this.entityRepository = entityRepository;
 	}
@@ -78,13 +73,17 @@ public class AdminBillCancellationServiceImpl implements AdminBillCancellationSe
 	public GenericResponse<AdminBillResponseBean> fetchAdmbillhBySer(String ser) {
 		Admbillh admbillhEntity = this.admbillhRepository.findByAdmbillhCK_AdblhSer(ser);
 		log.info("AdmbillhEntity :: {}", admbillhEntity);
-		if (admbillhEntity != null) {
-			Actranh oldActranh = actranhRepository.findByActranhCK_ActhTranser(ser);
-
+		Actranh oldActranh = actranhRepository.findByActranhCK_ActhTranser(ser);
+		
+		if(Objects.nonNull(oldActranh)) {
 			if ((Objects.isNull(oldActranh.getActhReverseyn()) ? "" : oldActranh.getActhReverseyn())
 					.equalsIgnoreCase("Y")) {
 				return new GenericResponse<>(false, "Admin Bill# " + ser + " already reversed.");
 			}
+		}
+		
+		if (admbillhEntity != null) {
+
 			if ((Objects.isNull(admbillhEntity.getAdblhStatus()) ? 0
 					: Double.parseDouble(admbillhEntity.getAdblhStatus())) != 7) {
 				Party partyEntity = this.partyRepository
@@ -116,14 +115,15 @@ public class AdminBillCancellationServiceImpl implements AdminBillCancellationSe
 								admbillhEntity.getAdblhPartycode().trim(), admbillhEntity.getAdblhBldgcode().trim(),
 								admbillhEntity.getAdblhCoy().trim(), "Z");
 				log.info("DecLocAdjustedAdvn", adjustedAdvn);
-				String stateName = entityRepository.fetchStateNameByEntClassAndEntId(addressEntity.getAdrState());
+				String stateCode=Objects.isNull(addressEntity)?"": Objects.isNull(addressEntity.getAdrState())?"":addressEntity.getAdrState();
+				String stateName = entityRepository.fetchStateNameByEntClassAndEntId(stateCode);
 				log.info("stateName", stateName);
 
 				List<Actrand> actrand = actrandRepository.findByActdTranser(ser);
 
 				AdminBillResponseBean adminBillResponseBean = AdminBillResponseBean.builder()
 						.admbilld(admbilldEntityList).admbillh(admbillhEntity).gstNo(partyEntity.getParGstno())
-						.stateCode(addressEntity.getAdrState()).stateName(stateName).totPaidAdvance(totPaidAdvn)
+						.stateCode(stateCode).stateName(stateName).totPaidAdvance(totPaidAdvn)
 						.adjustedAdvn(adjustedAdvn).docParCode(actrand.get(0).getActdDocparcode())
 						.docParType(actrand.get(0).getActdDocpartype()).refPartyDesc(partyEntity.getParPartyname())
 						.bldgDesc(building.getBldgName()).build();
@@ -135,7 +135,7 @@ public class AdminBillCancellationServiceImpl implements AdminBillCancellationSe
 			}
 		}
 
-		return new GenericResponse<>(false, "No record found for your selections in Admbillh");
+		return new GenericResponse<>(false, "Record not found.");
 	}
 
 	@Override
@@ -167,7 +167,7 @@ public class AdminBillCancellationServiceImpl implements AdminBillCancellationSe
 						newActranhCK.setActhCoy(oldActranh.getActranhCK().getActhCoy());
 
 						newActranh.setActranhCK(newActranhCK);
-						newActranh.setActhNarrative("Reversal of #".concat(ser).concat(" for Invoice#")
+						newActranh.setActhNarrative("Reversal of Tran# ".concat(ser).concat(" for Inv# ")
 								.concat(admbillhEntity.getAdblhSuppbillno()));
 						newActranh.setActhTranamt(newActranh.getActhTranamt() * -1);
 						newActranh.setActhReverseyn("Y");
@@ -221,7 +221,7 @@ public class AdminBillCancellationServiceImpl implements AdminBillCancellationSe
 						// the admin bill.
 						actrandRepository.saveAll(newActrandList);
 
-						return new GenericResponse<>(true, "Admin Bill cancellation successful.");
+						return new GenericResponse<>(true, "Data Cancelled successfully.");
 
 					} else {
 						return new GenericResponse<>(false, "Admin Bill# " + ser + " already reversed.", "4");

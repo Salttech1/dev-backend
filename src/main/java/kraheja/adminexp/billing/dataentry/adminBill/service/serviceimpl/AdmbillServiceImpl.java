@@ -164,7 +164,7 @@ public class AdmbillServiceImpl implements AdmbillEntryService {
 
 			return new GenericResponse<>(true, "Admin Bill Retrieved Successfully", adminBillResponseBean);
 		}
-		return new GenericResponse<>(false, "No record found for your selections in Admbillh");
+		return new GenericResponse<>(false, "No record found .");
 	}
 
 	@Override

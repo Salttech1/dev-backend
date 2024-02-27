@@ -35,7 +35,8 @@ public interface SalaryInitialisationRepository extends JpaRepository<Coymthsalt
 			+ "         END )                                                  AS NewMth, \r\n"
 			+ "       Getsalinitstat(cmst_coy, cmst_paymonth, CMST_SALARYTYPE) AS Status, \r\n"
 			+ "       CMST_SALARYTYPE                                          AS SalType, \r\n"
-			+ "       CMST_YRSALREVNO                                          AS YrSalRevNo \r\n"
+			+ "       CMST_YRSALREVNO                                          AS YrSalRevNo, \r\n"
+			+ "       TO_Char(cmst_initialisedon,'DD/MM/YYYY')                 AS Initialisedon \r\n"
 			+ "FROM   COYMTHSALTYPES \r\n"
 			+ "WHERE  Trim(cmst_coy) in  (:coyCode) \r\n"
 			+ "       AND Trim(cmst_salarytype) in  (:salarytype) \r\n"
@@ -169,7 +170,7 @@ public interface SalaryInitialisationRepository extends JpaRepository<Coymthsalt
 			+ "			FROM   COYMTHSALTYPES \r\n"
 			+ "			WHERE  Trim(cmst_coy) = :coy \r\n"
 			+ "			       AND Trim(cmst_salarytype) = :Saltype ", nativeQuery = true)
-	Double FindDateDiffForInit(String coy,String Saltype);
+	Integer FindDateDiffForInit(String coy,String Saltype);
 	
 	@Modifying
 	@Query("UPDATE Coymthsaltypes c \r\n"

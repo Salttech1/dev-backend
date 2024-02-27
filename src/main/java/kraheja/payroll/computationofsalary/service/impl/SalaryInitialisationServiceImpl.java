@@ -7,6 +7,8 @@ import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -74,7 +76,8 @@ public class SalaryInitialisationServiceImpl implements SalaryInitialisationServ
 			                t.get(3, String.class),
 			                t.get(4, String.class),
 			                t.get(5, Character.class),
-			                t.get(6, BigDecimal.class));
+			                t.get(6, BigDecimal.class),
+			                t.get(7, String.class));
 					}
 							).collect(Collectors.toList());
 			return ResponseEntity.ok(ServiceResponseBean.builder().status(Boolean.TRUE).data(salaryInitCheckInputBean).build());
@@ -104,7 +107,8 @@ public class SalaryInitialisationServiceImpl implements SalaryInitialisationServ
 			                t.get(3, String.class),
 			                t.get(4, String.class),
 			                t.get(5, Character.class),
-			                t.get(6, BigDecimal.class));
+			                t.get(6, BigDecimal.class),
+			                t.get(7, String.class));
 					}
 							).collect(Collectors.toList());
 			} else {
@@ -116,20 +120,40 @@ public class SalaryInitialisationServiceImpl implements SalaryInitialisationServ
 			List<Tuple> emppaymonthTuple = new ArrayList<>();
 			String status = "";
 			// Calucate date differences in days
-			Double datediff = this.salaryInitialisationRepository.FindDateDiffForInit(row.getCompany(), row.getSalType().toString());
-			DecimalFormat df = new DecimalFormat("#.##"); // This pattern specifies two decimal places
-			Double days7 = 7.00;
-	        // Format the number using DecimalFormat
-//	        String formatteddatediff = df.format(datediff);
+			Integer datediff = this.salaryInitialisationRepository.FindDateDiffForInit(row.getCompany().trim(), row.getSalType().toString());
+			
 			if ("INITIALISE".equals(row.getStatus().trim())) {
-//				if (datediff <= days7){
-//				if (days7.compareTo(datediff) <= 0) {
-//					status = "Last Initialiastion was done just before " + formatteddatediff + " days Only....Initialisation NOT ALLOWED for " + row.getSalaryType() + " of " + row.getCompany() + "......";
-//		            return;
-//		        } else {
-		        	status = "READY TO PAY";
-//		        }	
+				LocalDateTime LocaldateTime = LocalDateTime.of(LocalDate.now(), LocalTime.now());
 
+				logger.info("Initialedon {} ",CommonUtils.INSTANCE.convertStringToDateFormat(row.getInitialedon()));
+				logger.info("LocaldateTime {} ",LocaldateTime);
+				logger.info("datediff {} ",datediff);
+				if(ChronoUnit.DAYS.between(CommonUtils.INSTANCE.convertStringToDateFormat(row.getInitialedon()), LocaldateTime) < 7){
+					status = "Last Initialiastion was done just before " + datediff + " days Only....Initialisation NOT ALLOWED for " + row.getSalaryType() + " of " + row.getCompany() + "......";
+					
+					//find hold employees in previous month  
+					Double holdCount = this.salaryInitialisationRepository.FindEmplOnHold(row.getCompany(), row.getCurrentMth(), row.getSalType().toString());
+					//set values in bean to send to frontend
+					SalaryInitCompletedBean completedBean = new SalaryInitCompletedBean();
+					completedBean.setSalaryType(row.getSalaryType());
+					completedBean.setCompany(row.getCompany());
+				    completedBean.setCurrentMth(row.getCurrentMth());
+				    completedBean.setNewMth(row.getNewMth());
+				    completedBean.setStatus(row.getStatus());
+				    completedBean.setSalType(row.getSalType()); 
+				    completedBean.setYrSalRevNo(row.getYrSalRevNo());
+				    completedBean.setRowInitial(new BigDecimal(0));
+				    completedBean.setLastMthHold(new BigDecimal(holdCount));
+				    completedBean.setStatus(status);
+				    salaryInitCompletedBean.add(completedBean);
+					
+					
+					return;
+				}else {
+		        	status = "READY TO PAY";
+			        }	
+			} else {  //when it is Re-INITIALISE
+				status = "READY TO PAY";
 			}
 			
 			if ("S".equals(salarytype)) {

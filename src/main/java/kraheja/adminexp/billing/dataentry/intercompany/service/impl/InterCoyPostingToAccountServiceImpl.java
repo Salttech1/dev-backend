@@ -85,6 +85,7 @@ public class InterCoyPostingToAccountServiceImpl implements InterCoyPostingToAcc
 
 				String tranSer = GenericCounterIncrementLogicUtil.generateTranNo("#TSER", "#IA");
 				int bunum = 1;
+				int newBunum = 1;
 
 				genericAccountingLogic.updateActranh(tranSer,
 						intercoybillheader.getIcbehTrandate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), "GL",
@@ -128,6 +129,9 @@ public class InterCoyPostingToAccountServiceImpl implements InterCoyPostingToAcc
 						Double locSGSTAmount = Objects.isNull(intercoybilldetail.getIcbedSgstamt()) ? 0d
 								: intercoybilldetail.getIcbedSgstamt();
 
+						Double tranAmount = Objects.isNull(intercoybilldetail.getIcbedTranamt()) ? 0d
+								: intercoybilldetail.getIcbedTranamt();
+
 						List<ActrandBean> invoiceAmountBreakup = new ArrayList<>();
 						List<ActrandBean> cgstAmountBreakup = new ArrayList<>();
 						List<ActrandBean> sgstAmountBreakup = new ArrayList<>();
@@ -146,8 +150,7 @@ public class InterCoyPostingToAccountServiceImpl implements InterCoyPostingToAcc
 
 						MinorResponse minorResponse = setMinorDetails(minorRequest);
 
-						invoiceAmountBreakup = GenericAccountingLogic.initialiseActrandBreakups("IA",
-								"20402005",
+						invoiceAmountBreakup = GenericAccountingLogic.initialiseActrandBreakups("IA", "20402005",
 								Objects.isNull(intercoybilldetail.getIcbedMintype()) ? " "
 										: intercoybilldetail.getIcbedMintype(),
 								Objects.isNull(intercoybilldetail.getIcbedMinor()) ? " "
@@ -159,17 +162,20 @@ public class InterCoyPostingToAccountServiceImpl implements InterCoyPostingToAcc
 								Objects.isNull(intercoybilldetail.getIcbedMintype()) ? " "
 										: intercoybilldetail.getIcbedMintype(),
 								intercoybillheader.getIcbehPartytype(), intercoybillheader.getIcbehPartycode(),
-								intercoybillheader.getIcbehProjcode(),Objects.isNull(intercoybilldetail.getIcbedMinor()) ? " "
-										: intercoybilldetail.getIcbedMinor(),0d,
-								(double) intercoybilldetail.getIcbedTranamt() * -1, "","","", "", "",
+								intercoybillheader.getIcbehProjcode(),
+								Objects.isNull(intercoybilldetail.getIcbedMinor()) ? " "
+										: intercoybilldetail.getIcbedMinor(),
+								0d, (double) intercoybilldetail.getIcbedTranamt() * -1, "", "", "", "", "",
 								intercoybillheader.getIcbehTrandate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
 								bunum, "", tranSer, "GL", company.getCompanyCK().getCoyProp(),
 								company.getCompanyCK().getCoyCode(),
 								intercoybillheader.getIntercoybillheaderCK().getIcbehInvoiceno(),
 								intercoybillheader.getIcbehTrandate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-								"",intercoybillheader.getIcbehPeriodfrom().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-								intercoybillheader.getIcbehPeriodto().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),"Q",
-								"", "", "", 0d, intercoybillheader.getIntercoybillheaderCK().getIcbehInvoiceno(),
+								"",
+								intercoybillheader.getIcbehPeriodfrom()
+										.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+								intercoybillheader.getIcbehPeriodto().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+								"Q", "", "", "", 0d, intercoybillheader.getIntercoybillheaderCK().getIcbehInvoiceno(),
 								intercoybillheader.getIcbehTrandate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
 								"", intercoybillheader.getIcbehPartytype(), intercoybillheader.getIcbehPartycode());
 
@@ -184,20 +190,25 @@ public class InterCoyPostingToAccountServiceImpl implements InterCoyPostingToAcc
 									Objects.isNull(intercoybilldetail.getIcbedMinor()) ? " "
 											: intercoybilldetail.getIcbedMinor(),
 									intercoybillheader.getIcbehPartytype(), intercoybillheader.getIcbehPartycode(),
-									"GL",Objects.isNull(intercoybilldetail.getIcbedMinor()) ? " "
+									"GL",
+									Objects.isNull(intercoybilldetail.getIcbedMinor()) ? " "
 											: intercoybilldetail.getIcbedMinor(),
 									"11402433", minorResponse.getLocXAccMinType(), minorResponse.getLocXAccPartyType(),
-									minorResponse.getLocXAccParty(), "GL", minorResponse.getLocXAccCodeAcMinor(),0d,
-									locSGSTAmount * -1,"","", "", "", "",intercoybillheader.getIcbehTrandate()
+									minorResponse.getLocXAccParty(), "GL", minorResponse.getLocXAccCodeAcMinor(), 0d,
+									locSGSTAmount * -1, "", "", "", "", "",
+									intercoybillheader.getIcbehTrandate()
 											.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
 									bunum, "", tranSer, "GL", company.getCompanyCK().getCoyProp(),
 									company.getCompanyCK().getCoyCode(),
 									intercoybillheader.getIntercoybillheaderCK().getIcbehInvoiceno(),
 									intercoybillheader.getIcbehTrandate()
 											.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-									"",intercoybillheader.getIcbehPeriodfrom().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-									intercoybillheader.getIcbehPeriodto().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),"Q",
-									"", "", "", 0d,
+									"",
+									intercoybillheader.getIcbehPeriodfrom()
+											.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+									intercoybillheader.getIcbehPeriodto()
+											.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+									"Q", "", "", "", 0d,
 									intercoybillheader.getIntercoybillheaderCK().getIcbehInvoiceno(),
 									intercoybillheader.getIcbehTrandate()
 											.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
@@ -217,8 +228,8 @@ public class InterCoyPostingToAccountServiceImpl implements InterCoyPostingToAcc
 									Objects.isNull(intercoybilldetail.getIcbedMinor()) ? " "
 											: intercoybilldetail.getIcbedMinor(),
 									"11402431", minorResponse.getLocXAccMinType(), minorResponse.getLocXAccPartyType(),
-									minorResponse.getLocXAccParty(), "GL", minorResponse.getLocXAccCodeAcMinor(),0d,
-									locCGSTAmount * -1, "","" ,"", "", "",
+									minorResponse.getLocXAccParty(), "GL", minorResponse.getLocXAccCodeAcMinor(), 0d,
+									locCGSTAmount * -1, "", "", "", "", "",
 									intercoybillheader.getIcbehTrandate()
 											.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
 									bunum, "", tranSer, "GL", company.getCompanyCK().getCoyProp(),
@@ -226,9 +237,12 @@ public class InterCoyPostingToAccountServiceImpl implements InterCoyPostingToAcc
 									intercoybillheader.getIntercoybillheaderCK().getIcbehInvoiceno(),
 									intercoybillheader.getIcbehTrandate()
 											.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-									"",intercoybillheader.getIcbehPeriodfrom().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-									intercoybillheader.getIcbehPeriodto().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),"Q",
-									"", "", "", 0d,
+									"",
+									intercoybillheader.getIcbehPeriodfrom()
+											.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+									intercoybillheader.getIcbehPeriodto()
+											.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+									"Q", "", "", "", 0d,
 									intercoybillheader.getIntercoybillheaderCK().getIcbehInvoiceno(),
 									intercoybillheader.getIcbehTrandate()
 											.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
@@ -246,18 +260,21 @@ public class InterCoyPostingToAccountServiceImpl implements InterCoyPostingToAcc
 										intercoybillheader.getIcbehPartytype(), intercoybillheader.getIcbehPartycode(),
 										"GL", minorResponse.getLocAccCodeAcMinor(), "11402435",
 										minorResponse.getLocXAccMinType(), minorResponse.getLocXAccPartyType(),
-										minorResponse.getLocXAccParty(), "GL", minorResponse.getLocXAccCodeAcMinor(),0d,
-										(double) intercoybilldetail.getIcbedIgstamt() * -1, "","" ,"", "", "",
+										minorResponse.getLocXAccParty(), "GL", minorResponse.getLocXAccCodeAcMinor(),
+										0d, (double) intercoybilldetail.getIcbedIgstamt() * -1, "", "", "", "", "",
 										intercoybillheader.getIcbehTrandate()
 												.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
 										bunum, "", tranSer, "GL", company.getCompanyCK().getCoyProp(),
 										company.getCompanyCK().getCoyCode(),
 										intercoybillheader.getIntercoybillheaderCK().getIcbehInvoiceno(),
-										intercoybillheader.getIcbehTrandate()
+										intercoybillheader
+												.getIcbehTrandate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+										"",
+										intercoybillheader.getIcbehPeriodfrom()
 												.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-										"",intercoybillheader.getIcbehPeriodfrom().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-										intercoybillheader.getIcbehPeriodto().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),"Q",
-										"", "", "", 0d,
+										intercoybillheader.getIcbehPeriodto()
+												.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+										"Q", "", "", "", 0d,
 										intercoybillheader.getIntercoybillheaderCK().getIcbehInvoiceno(),
 										intercoybillheader.getIcbehTrandate()
 												.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
@@ -295,8 +312,6 @@ public class InterCoyPostingToAccountServiceImpl implements InterCoyPostingToAcc
 
 						if (locCompanyYN) {
 
-							int newBunum = 1;
-
 							genericAccountingLogic.updateActranh(locICbillAcTranser,
 									intercoybillheader.getIcbehTrandate()
 											.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
@@ -315,38 +330,42 @@ public class InterCoyPostingToAccountServiceImpl implements InterCoyPostingToAcc
 							List<ActrandBean> intercompanyCgstAmountBreakup = new ArrayList<>();
 							List<ActrandBean> intercompanySgstAmountBreakup = new ArrayList<>();
 
-							if(intercoybilldetail.getIcbedTranamt()>0) {
-								intercompanyInvoiceBreakup = GenericAccountingLogic.initialiseActrandBreakups("BO",
-										interCompanyAcMajor,
-										Objects.isNull(intercoybilldetail.getIcbedMintype()) ? " "
-												: intercoybilldetail.getIcbedMintype(),
-										Objects.isNull(intercoybilldetail.getIcbedMinor()) ? " "
-												: intercoybilldetail.getIcbedMinor(),
-										intercoybillheader.getIcbehPartytype(), intercoybillheader.getIcbehPartycode(),
-										"GL",
-										Objects.isNull(intercoybilldetail.getIcbedMinor()) ? " "
-												: intercoybilldetail.getIcbedMinor(),
-										intercoybilldetail.getIcbedAcmajor(), minorResponse.getLocXAccMinType(),
-										minorResponse.getLocXAccPartyType(), minorResponse.getLocXAccParty(), intercoybillheader.getIcbehProjcode(),
-										minorResponse.getLocXAccCodeAcMinor(),0d,
-										(double) intercoybilldetail.getIcbedTranamt() * -1,"","", "", "", "",
-										intercoybillheader.getIcbehTrandate()
-												.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-										newBunum, "", locICbillAcTranser, "GL", company.getCompanyCK().getCoyProp(),
-										company.getCompanyCK().getCoyCode(),
-										intercoybillheader.getIntercoybillheaderCK().getIcbehInvoiceno(),
-										intercoybillheader.getIcbehTrandate()
-												.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-										"",intercoybillheader.getIcbehPeriodfrom().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-										intercoybillheader.getIcbehPeriodto().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),"Q",
-										"", "", "", 0d,
-										intercoybillheader.getIntercoybillheaderCK().getIcbehInvoiceno(),
-										intercoybillheader.getIcbehTrandate()
-												.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-										"", intercoybillheader.getIcbehPartytype(), intercoybillheader.getIcbehPartycode());
+							intercompanyInvoiceBreakup = GenericAccountingLogic.initialiseActrandBreakups("BO",
+									interCompanyAcMajor,
+									Objects.isNull(intercoybilldetail.getIcbedMintype()) ? " "
+											: intercoybilldetail.getIcbedMintype(),
+									Objects.isNull(intercoybilldetail.getIcbedMinor()) ? " "
+											: intercoybilldetail.getIcbedMinor(),
+									intercoybillheader.getIcbehPartytype(), intercoybillheader.getIcbehCoy(), "GL",
+									Objects.isNull(intercoybilldetail.getIcbedMinor()) ? " "
+											: intercoybilldetail.getIcbedMinor(),
+									intercoybilldetail.getIcbedAcmajor(),
+									Objects.isNull(intercoybilldetail.getIcbedMintype()) ? " "
+											: intercoybilldetail.getIcbedMintype(),
+									intercoybillheader.getIcbehPartytype(),
+									intercoybillheader.getIcbehPartycode().trim(),
+									intercoybillheader.getIcbehRecbillprojcode(), minorResponse.getLocXAccCodeAcMinor(),
+									0d, (double) intercoybilldetail.getIcbedTranamt(), "", "", "", "", "",
+									intercoybillheader.getIcbehTrandate()
+											.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+									newBunum, "", locICbillAcTranser, "GL",
+									intercoybillheader.getIcbehPartycode().trim(),
+									intercoybillheader.getIcbehPartycode().trim(),
+									intercoybillheader.getIntercoybillheaderCK().getIcbehInvoiceno(),
+									intercoybillheader.getIcbehTrandate()
+											.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+									"",
+									intercoybillheader.getIcbehPeriodfrom()
+											.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+									intercoybillheader.getIcbehPeriodto()
+											.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+									"Q", "", "", "", 0d,
+									intercoybillheader.getIntercoybillheaderCK().getIcbehInvoiceno(),
+									intercoybillheader.getIcbehTrandate()
+											.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+									"", intercoybillheader.getIcbehPartytype(), intercoybillheader.getIcbehCoy());
 
-								newBunum += 2;
-							}
+							newBunum += 2;
 
 							if (intercoybilldetail.getIcbedSgstamt() > 0 && intercoybilldetail.getIcbedCgstamt() > 0) {
 
@@ -356,28 +375,32 @@ public class InterCoyPostingToAccountServiceImpl implements InterCoyPostingToAcc
 												: intercoybilldetail.getIcbedMintype(),
 										Objects.isNull(intercoybilldetail.getIcbedMinor()) ? " "
 												: intercoybilldetail.getIcbedMinor(),
-										intercoybillheader.getIcbehPartytype(), intercoybillheader.getIcbehPartycode(),
-										"GL",
+										intercoybillheader.getIcbehPartytype(), intercoybillheader.getIcbehCoy(), "GL",
 										Objects.isNull(intercoybilldetail.getIcbedMinor()) ? " "
 												: intercoybilldetail.getIcbedMinor(),
-										"11402433", minorResponse.getLocXAccMinType(),
-										minorResponse.getLocXAccPartyType(), minorResponse.getLocXAccParty(), "GL",
-										minorResponse.getLocXAccCodeAcMinor(),0d, locSGSTAmount * -1,"","", "", "", "",
+										"20404391",
+										Objects.isNull(intercoybilldetail.getIcbedMintype()) ? " "
+												: intercoybilldetail.getIcbedMintype(),
+										intercoybillheader.getIcbehPartytype(),
+										intercoybillheader.getIcbehPartycode().trim(), "GL",
+										minorResponse.getLocXAccCodeAcMinor(), 0d, locSGSTAmount, "", "", "", "", "",
 										intercoybillheader.getIcbehTrandate()
 												.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-										newBunum, "", locICbillAcTranser, "GL", company.getCompanyCK().getCoyProp(),
-										company.getCompanyCK().getCoyCode(),
+										newBunum, "", locICbillAcTranser, "GL", intercoybillheader.getIcbehPartycode().trim(),
+										intercoybillheader.getIcbehPartycode().trim(),
 										intercoybillheader.getIntercoybillheaderCK().getIcbehInvoiceno(),
-										intercoybillheader.getIcbehTrandate()
+										intercoybillheader.getIcbehTrandate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+										"",
+										intercoybillheader.getIcbehPeriodfrom()
 												.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-										"",intercoybillheader.getIcbehPeriodfrom().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-										intercoybillheader.getIcbehPeriodto().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),"", 
-										"", "", "", 0d,
+										intercoybillheader.getIcbehPeriodto()
+												.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+										"", "", "", "", 0d,
 										intercoybillheader.getIntercoybillheaderCK().getIcbehInvoiceno(),
 										intercoybillheader.getIcbehTrandate()
 												.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
 										"", intercoybillheader.getIcbehPartytype(),
-										intercoybillheader.getIcbehPartycode());
+										intercoybillheader.getIcbehCoy());
 
 								log.info("intercompanySgstAmountBreakup : {}", intercompanySgstAmountBreakup);
 
@@ -389,30 +412,34 @@ public class InterCoyPostingToAccountServiceImpl implements InterCoyPostingToAcc
 												: intercoybilldetail.getIcbedMintype(),
 										Objects.isNull(intercoybilldetail.getIcbedMinor()) ? " "
 												: intercoybilldetail.getIcbedMinor(),
-										intercoybillheader.getIcbehPartytype(), intercoybillheader.getIcbehPartycode(),
-										"GL",
-										Objects.isNull(intercoybilldetail.getIcbedMinor()) ? " "
+										intercoybillheader.getIcbehPartytype(), intercoybillheader.getIcbehCoy(),
+										"GL",Objects.isNull(intercoybilldetail.getIcbedMinor()) ? " "
 												: intercoybilldetail.getIcbedMinor(),
-										"11402431", minorResponse.getLocXAccMinType(),
-										minorResponse.getLocXAccPartyType(), minorResponse.getLocXAccParty(), "GL",
-										minorResponse.getLocXAccCodeAcMinor(),0d, locCGSTAmount * -1,"","", "", "", "",
+										"20404392",Objects.isNull(intercoybilldetail.getIcbedMintype()) ? " "
+												: intercoybilldetail.getIcbedMintype(),
+										intercoybillheader.getIcbehPartytype(),intercoybillheader.getIcbehPartycode().trim(), "GL",
+										minorResponse.getLocXAccCodeAcMinor(), 0d, locCGSTAmount, "", "", "", "", "",
 										intercoybillheader.getIcbehTrandate()
 												.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-										newBunum, "", locICbillAcTranser, "GL", company.getCompanyCK().getCoyProp(),
-										company.getCompanyCK().getCoyCode(),
+										newBunum, "", locICbillAcTranser, "GL",intercoybillheader.getIcbehPartycode().trim(),
+										intercoybillheader.getIcbehPartycode().trim(),
 										intercoybillheader.getIntercoybillheaderCK().getIcbehInvoiceno(),
-										intercoybillheader.getIcbehTrandate()
+										intercoybillheader.getIcbehTrandate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+										"",
+										intercoybillheader.getIcbehPeriodfrom()
 												.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-										"",intercoybillheader.getIcbehPeriodfrom().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-										intercoybillheader.getIcbehPeriodto().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),"",
-										"", "", "", 0d,
+										intercoybillheader.getIcbehPeriodto()
+												.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+										"", "", "", "", 0d,
 										intercoybillheader.getIntercoybillheaderCK().getIcbehInvoiceno(),
 										intercoybillheader.getIcbehTrandate()
 												.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
 										"", intercoybillheader.getIcbehPartytype(),
-										intercoybillheader.getIcbehPartycode());
+										intercoybillheader.getIcbehCoy());
 
 								log.info("intercompanyCgstAmountBreakup {}", intercompanyCgstAmountBreakup);
+
+								newBunum += 2;
 
 							}
 							List<List<ActrandBean>> listOfLists2 = new ArrayList<>();

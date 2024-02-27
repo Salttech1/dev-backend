@@ -1,10 +1,16 @@
 package kraheja.enggsys.repository;
 
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Set;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import kraheja.enggsys.entity.Lcauth;
 import kraheja.enggsys.entity.LcauthCK;
+import kraheja.purch.entity.Auth_H;
+import kraheja.purch.entity.Dbnoteh;
 
 public interface LcauthRepository extends JpaRepository<Lcauth, LcauthCK> {
 
@@ -15,4 +21,11 @@ public interface LcauthRepository extends JpaRepository<Lcauth, LcauthCK> {
 	
 	@Query(value = "select * from lcauth where trim(lcah_authnum) = ? ", nativeQuery = true)
 	Lcauth findLastLcauthBySupplierAndBuildingAndAuthTypeAuthnum(String authnum);
+	
+	// Not added one condition auth_num like '%' I think it is not required
+	List<Lcauth> findByLcahPrintedonAndLcahUserid(LocalDate printedon, String userid);
+	
+	@Query("SELECT e FROM Lcauth e WHERE TRIM(e.lcauthCK.lcahAuthnum) IN :authNumList")
+	List<Lcauth> findByLcauthCK_LcahAuthnumIn(List<String> authNumList);
+
 }

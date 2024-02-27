@@ -53,21 +53,21 @@ public class AdmbillPassingServiceImpl implements AdmbillPassingService {
 
 	@SuppressWarnings("unused")
 	public GenericResponse<Admbillh> fetchAdmbillhSer(String ser) {
-		log.info("Inside Fetch Admin Advance Payment Passing Service Implementation .");
+		log.info("Inside Fetch Admin Bill Passing Service Implementation .");
 
 		Admbillh admbillhEntity = this.admbillhRepository.findByAdmbillhCK_AdblhSer(ser);
 
-		log.info("Admbillh Entity : {} ", admbillhEntity.toString());
+		log.info("Admbillh Entity : {} ", admbillhEntity);
 
 		if (admbillhEntity == null) {
 
-			return new GenericResponse<>(false, "No record found for your selections in Admbillh");
+			return new GenericResponse<>(false, "No record found .");
 
 		}
 
 		if (Objects.nonNull(admbillhEntity.getAdblhStatus())) {
 
-			return new GenericResponse<>(false, "Payment already passed for the given serial number");
+			return new GenericResponse<>(false, "This bill has been passed");
 
 		}
 
@@ -96,10 +96,9 @@ public class AdmbillPassingServiceImpl implements AdmbillPassingService {
 					- (Objects.isNull(admbillhEntity.getAdblhAdvnadjust()) ? 0d : admbillhEntity.getAdblhAdvnadjust())
 					- (Objects.isNull(admbillhEntity.getAdblhDebitamt()) ? 0d : admbillhEntity.getAdblhDebitamt());
 
-			
-			Double basicAmount= admbillhEntity.getAdblhBillamount()
+			Double basicAmount = admbillhEntity.getAdblhBillamount()
 					- (Objects.isNull(admbillhEntity.getAdblhTdsamount()) ? 0d : admbillhEntity.getAdblhTdsamount());
-					
+
 			genericAccountingLogic.updateActranh(tranSer, new SimpleDateFormat("dd/MM/yyyy").format(new Date()), "GL",
 					admbillhEntity.getAdblhPartytype(), admbillhEntity.getAdblhPartycode(), payAmount,
 					admbillhEntity.getAdmbillhCK().getAdblhSer(), new SimpleDateFormat("dd/MM/yyyy").format(new Date()),
@@ -113,14 +112,18 @@ public class AdmbillPassingServiceImpl implements AdmbillPassingService {
 					admbillhEntity.getAdblhPartytype(), admbillhEntity.getAdblhPartycode(),
 					admbillhEntity.getAdblhProject(), admbillhEntity.getAdblhAcminor(), "80000006", " ",
 					admbillhEntity.getAdblhPartytype(), admbillhEntity.getAdblhPartycode(), "GL",
-					admbillhEntity.getAdblhPartycode(), 0d, basicAmount * -1, admbillhEntity.getAdblhBldgcode(), "", "", "",
-					"", new SimpleDateFormat("dd/MM/yyyy").format(new Date()), bunumCounter,
+					admbillhEntity.getAdblhPartycode(), 0d, basicAmount * -1, admbillhEntity.getAdblhBldgcode(), "", "",
+					"", "", new SimpleDateFormat("dd/MM/yyyy").format(new Date()), bunumCounter,
 					admbillhEntity.getAdblhNarration(), tranSer, "GL", companyEntity.getCompanyCK().getCoyProp(),
 					admbillhEntity.getAdblhCoy(), admbillhEntity.getAdmbillhCK().getAdblhSer(),
-					new SimpleDateFormat("dd/MM/yyyy").format(new Date()), "",Objects.nonNull(admbillhEntity.getAdblhFromdate())
-					?admbillhEntity.getAdblhFromdate().format(CommonConstraints.INSTANCE.DDMMYYYY_FORMATTER): "",
-					Objects.nonNull(admbillhEntity.getAdblhTodate())?admbillhEntity.getAdblhTodate().format(CommonConstraints.INSTANCE.DDMMYYYY_FORMATTER): "",
-					"", "", "", "",0.0, admbillhEntity.getAdblhSuppbillno().trim(),
+					new SimpleDateFormat("dd/MM/yyyy").format(new Date()), "",
+					Objects.nonNull(admbillhEntity.getAdblhFromdate())
+							? admbillhEntity.getAdblhFromdate().format(CommonConstraints.INSTANCE.DDMMYYYY_FORMATTER)
+							: "",
+					Objects.nonNull(admbillhEntity.getAdblhTodate())
+							? admbillhEntity.getAdblhTodate().format(CommonConstraints.INSTANCE.DDMMYYYY_FORMATTER)
+							: "",
+					"", "", "", "", 0.0, admbillhEntity.getAdblhSuppbillno().trim(),
 					admbillhEntity.getAdblhSuppbilldt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), "",
 					admbillhEntity.getAdblhPartytype(), admbillhEntity.getAdblhPartycode());
 
@@ -134,19 +137,21 @@ public class AdmbillPassingServiceImpl implements AdmbillPassingService {
 						admbillhEntity.getAdblhPartytype(), admbillhEntity.getAdblhPartycode(),
 						admbillhEntity.getAdblhProject(), admbillhEntity.getAdblhAcminor(), "80000006", " ",
 						admbillhEntity.getAdblhPartytype(), admbillhEntity.getAdblhPartycode(), "GL",
-						admbillhEntity.getAdblhPartycode(), 0d, admbillhEntity.getAdblhAdvnadjust() * -1,
+						admbillhEntity.getAdblhPartycode(), 0d, admbillhEntity.getAdblhAdvnadjust(),
 						admbillhEntity.getAdblhBldgcode(), "", "", "", "",
 						new SimpleDateFormat("dd/MM/yyyy").format(new Date()), bunumCounter, "Advance Adjusted",
 						tranSer, "GL", companyEntity.getCompanyCK().getCoyProp(), admbillhEntity.getAdblhCoy(),
 						admbillhEntity.getAdmbillhCK().getAdblhSer(),
 						new SimpleDateFormat("dd/MM/yyyy").format(new Date()), "",
-						Objects.nonNull(admbillhEntity.getAdblhFromdate())?admbillhEntity.getAdblhFromdate().format(CommonConstraints.INSTANCE.DDMMYYYY_FORMATTER): "",
-						Objects.nonNull(admbillhEntity.getAdblhTodate())?admbillhEntity.getAdblhTodate().format(CommonConstraints.INSTANCE.DDMMYYYY_FORMATTER): "",
-						"", "", "","", 0.0, admbillhEntity.getAdblhSuppbillno().trim(),
+						Objects.nonNull(admbillhEntity.getAdblhFromdate()) ? admbillhEntity.getAdblhFromdate()
+								.format(CommonConstraints.INSTANCE.DDMMYYYY_FORMATTER) : "",
+						Objects.nonNull(admbillhEntity.getAdblhTodate())
+								? admbillhEntity.getAdblhTodate().format(CommonConstraints.INSTANCE.DDMMYYYY_FORMATTER)
+								: "",
+						"", "", "", "", 0.0, admbillhEntity.getAdblhSuppbillno().trim(),
 						admbillhEntity.getAdblhSuppbilldt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), "",
 						admbillhEntity.getAdblhPartytype(), admbillhEntity.getAdblhPartycode());
 
-				
 				bunumCounter += 2;
 				log.info("adjustedAdvanceBreakup : {}", adjustedAdvanceBreakup);
 				log.info("bunumCounter : {}", bunumCounter);
@@ -157,22 +162,26 @@ public class AdmbillPassingServiceImpl implements AdmbillPassingService {
 			listOfLists.add(adjustedAdvanceBreakup);
 
 			List<ActrandBean> actrandList = listOfLists.stream().flatMap(List::stream).collect(Collectors.toList());
-			
+
 			log.info("actrandList : {}", actrandList);
 
 			actrandEntityList.addAll(AddPojoEntityMapper.addActrandPojoEntityMapping.apply(actrandList));
 
-			for(Actrand e :actrandEntityList) {
-				e.setActdNarrative(admbillhEntity.getAdblhNarration());
-				e.setActdCfgroup("");
+			for (Actrand e : actrandEntityList) {
+				if (e.getActrandCK().getActdBunum() == 3 || e.getActrandCK().getActdBunum() == 4) {
+					e.setActdNarrative("Advance Adjusted");
+
+				}else {
+					e.setActdNarrative(admbillhEntity.getAdblhNarration());
+				}
 			}
-			
+
 			actrandRepository.saveAll(actrandEntityList);
 
 			admbillhEntity.setAdblhActranser(tranSer);
 			admbillhEntity.setAdblhPaidamount(payAmount);
 			admbillhEntity.setAdblhStatus("5");
-			admbillhEntity.setAdblhPassedon(LocalDate.now());
+			admbillhEntity.setAdblhPassedon(LocalDateTime.now());
 			admbillhEntity.setAdblhSite(GenericAuditContextHolder.getContext().getSite());
 			admbillhEntity.setAdblhUserid(GenericAuditContextHolder.getContext().getUserid());
 			admbillhEntity.setAdblhToday(LocalDateTime.now());

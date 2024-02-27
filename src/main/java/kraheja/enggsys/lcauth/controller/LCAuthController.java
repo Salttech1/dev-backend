@@ -25,6 +25,8 @@ import org.springframework.web.bind.annotation.RestController;
 import kraheja.commons.bean.request.OSAdvAndRetReportRequestBean;
 import kraheja.commons.utils.CommonConstraints;
 import kraheja.feign.internal.ReportInternalFeignClient;
+import kraheja.purch.bean.request.MaterialPaymentPrintRequestBean;
+import kraheja.purch.bean.request.PrintStatusUpdateDetailRequestBean;
 import kraheja.enggsys.bean.request.LCAuthPrintRequestBean;
 import kraheja.enggsys.bean.request.LCAuthViewRequestBean;
 import kraheja.enggsys.bean.request.LCAuthPrintStatusUpdateDetailRequestBean;
@@ -43,15 +45,24 @@ public class LCAuthController {
 	@Autowired
 	ReportInternalFeignClient reportInternalFeignClient;
 	
+	@PostMapping("/merge-pdf")
+	public ResponseEntity<?> mergePdf(@RequestBody LCAuthPrintDetailResponseBean LCAuthPrintDetailResponseBean){
+		return this.LCAuthService.mergePdf(LCAuthPrintDetailResponseBean);
+	}
+
+	@PostMapping("/insert-into-material-payment-temp")
+	public ResponseEntity<?> insertIntoMaterialPaymentTemp(@RequestBody LCAuthPrintRequestBean lcAuthPrintRequestBean){
+		return this.LCAuthService.insertIntoMaterialPaymentTemp(lcAuthPrintRequestBean);
+	}
+	
 	@PutMapping("/update-print-status")
 	public ResponseEntity<?> updatePrintStatus(@RequestBody LCAuthPrintStatusUpdateDetailRequestBean printStatusUpdateDetailRequestBean){
 		return this.LCAuthService.updateLCAuthPrintStatus(printStatusUpdateDetailRequestBean);
 	}
-	
-	
-	@PostMapping("/merge-pdf")
-	public ResponseEntity<?> mergePdf(@RequestBody LCAuthPrintDetailResponseBean TempLCAuthPrintDetailResponseBean){
-		return this.LCAuthService.mergePdf(TempLCAuthPrintDetailResponseBean);
+
+	@DeleteMapping("/delete-temp-table-from-sessionId")
+	public ResponseEntity<?> truncateTempTable(Integer sessionId) {
+		return this.LCAuthService.deleteTempTableFromSessionId(sessionId);
 	}
 	
 }

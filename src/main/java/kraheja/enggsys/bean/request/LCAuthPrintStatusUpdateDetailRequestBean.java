@@ -17,5 +17,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 
 public class LCAuthPrintStatusUpdateDetailRequestBean {
+	private String sessionId;
 	private Set<String> serList ;
 }

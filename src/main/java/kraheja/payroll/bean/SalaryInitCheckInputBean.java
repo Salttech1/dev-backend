@@ -23,5 +23,6 @@ public class SalaryInitCheckInputBean {
 	private String  Status;
 	private Character  SalType;
 	private BigDecimal  YrSalRevNo;
+	private String Initialedon;
 
 }

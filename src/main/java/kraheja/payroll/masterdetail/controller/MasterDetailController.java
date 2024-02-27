@@ -67,5 +67,10 @@ public class MasterDetailController {
 		return this.employeeDetailsEntryEditService.updateNewEmplDetails(employeeDetailsRequestBean);
 	}
 	
+	@PostMapping("/updateOld-empdetails")
+	public ResponseEntity<?> updateOldEmplDetails(@Valid @RequestBody EmployeeDetailsRequestBean employeeDetailsRequestBean){
+		return this.employeeDetailsEntryEditService.updateOldEmplDetails(employeeDetailsRequestBean);
+	}
+	
 }	
 

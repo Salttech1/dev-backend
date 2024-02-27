@@ -17,4 +17,7 @@ public interface LccertRepository extends JpaRepository<Lccert, LccertCK> {
 			+ "(SELECT sum(lcer_payamount) FROM lccert a WHERE a.lcer_contract = b.lcer_contract) AS TotPayment, lcer_tot_twoptc "
 			+ "FROM lccert b WHERE trim(lcer_contract) = ? AND lcer_certnum = (SELECT Max(lcer_certnum) FROM lccert c WHERE c.lcer_contract = b.lcer_contract)", nativeQuery = true)
 	Tuple fetchHeaderDetailsForLCCert(String recId);
+	
+	@Query(value = "SELECT Max(lcer_certnum) FROM lccert WHERE trim(lcer_contract) = ?", nativeQuery = true)
+	String fetchLastCertNumber(String recId);
 }

@@ -16,44 +16,64 @@ import kraheja.enggsys.lcsystem.service.AuthorizationService;
 import kraheja.payload.GenericResponse;
 import lombok.extern.log4j.Log4j2;
 
+/**
+ * <p>
+ * This API is use for create LC Authorization, retrieve LC Authorization and
+ * update LC Authorization. Here we are delete AUTHBOE for every time while
+ * update LC Authorization.
+ * </p>
+ * 
+ * @author sazzad.alom
+ * @since FEB-2024
+ * @version 1.0.0
+ * 
+ */
 @Log4j2
 @RestController
 @RequestMapping("/certificate")
 public class AuthorizationApi {
-	
+
 	private final AuthorizationService authorizationService;
-	
+
 	public AuthorizationApi(AuthorizationService authorizationService) {
 		this.authorizationService = authorizationService;
 	}
 
 	@GetMapping("/get-supplier-detail")
-	public ResponseEntity<SupplierDBResponse> getContractDetail(@RequestParam String supplier, @RequestParam String building, @RequestParam String authType, @RequestParam String authnum){
-		log.debug("post/request/authorization supplier: {} building: {} authType: {} authnum: {}", supplier, building, authType, authnum);
+	public ResponseEntity<SupplierDBResponse> getContractDetail(@RequestParam String supplier,
+			@RequestParam String building, @RequestParam String authType, @RequestParam String authnum) {
+		log.debug("post/request/authorization supplier: {} building: {} authType: {} authnum: {}", supplier, building,
+				authType, authnum);
 
 		SupplierDBResponse response = authorizationService.getSupplierDetail(supplier, building, authType, authnum);
 		log.debug("post/response/authorization: {}", response);
-		
-		return ResponseEntity.ok(response);
-	}
-	
-	@GetMapping("/retrieve-lc-authorization")
-	public ResponseEntity<AuthorizationRequest> retrieveAuth(@RequestParam String supplier, @RequestParam String building, @RequestParam String authType, @RequestParam String authnum){
-		log.debug("post/request/authorization supplier: {} building: {} authType: {} authnum: {}", supplier, building, authType, authnum);
 
-		AuthorizationRequest response = authorizationService.retrieveAuthorization(supplier, building, authType, authnum);
-		log.debug("post/response/authorization: {}", response);
-		
 		return ResponseEntity.ok(response);
 	}
-	
+
+	@GetMapping("/retrieve-lc-authorization")
+	public ResponseEntity<AuthorizationRequest> retrieveAuth(@RequestParam String supplier,
+			@RequestParam String building, @RequestParam String authType, @RequestParam String authnum) {
+		log.debug("post/request/authorization supplier: {} building: {} authType: {} authnum: {}", supplier, building,
+				authType, authnum);
+
+		AuthorizationRequest response = authorizationService.retrieveAuthorization(supplier, building, authType,
+				authnum);
+		log.debug("post/response/authorization: {}", response);
+
+		return ResponseEntity.ok(response);
+	}
+
 	@PostMapping("/create-lc-authorization")
-	public ResponseEntity<GenericResponse> makeAuthorization(@Valid @RequestParam String supplier, @RequestParam String building, @RequestParam String authType, @RequestParam String authnum, @Valid @RequestBody AuthorizationRequest request){
+	public ResponseEntity<GenericResponse> makeAuthorization(@Valid @RequestParam String supplier,
+			@RequestParam String building, @RequestParam String authType, @RequestParam String authnum,
+			@Valid @RequestBody AuthorizationRequest request) {
 		log.debug("post/request/authorization/create-lc-certificate: {}", request);
 
-		GenericResponse response = authorizationService.makeAuthorization(request, supplier, building, authType, authnum);
+		GenericResponse response = authorizationService.makeAuthorization(request, supplier, building, authType,
+				authnum);
 		log.debug("post/response/authorization/create-lc-authorization: {}", response);
-		
+
 		return ResponseEntity.ok(response);
 	}
 }

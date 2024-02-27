@@ -18,6 +18,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 
 public class LCAuthPrintDetailResponseBean {
+	String sessionId;
+
 	String authNumberFrom;
 	
 	String authNumberTo;
@@ -25,4 +27,4 @@ public class LCAuthPrintDetailResponseBean {
 	Map<String, String> serList;
 	
 	List<String> authNumList;
-}
+}	

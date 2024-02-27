@@ -14,6 +14,8 @@ public interface EmployeeDetailsEntryEditService {
 	ResponseEntity<?> addEmplDetails(EmployeeDetailsRequestBean employeeDetailsRequestBean);
 	
 	ResponseEntity<?> updateNewEmplDetails(EmployeeDetailsRequestBean employeeDetailsRequestBean);
+	
+	ResponseEntity<?> updateOldEmplDetails(EmployeeDetailsRequestBean employeeDetailsRequestBean);
 
 	ResponseEntity<?> fetchAllSalaryPackage(String empcode,Character CurrentAll);
 

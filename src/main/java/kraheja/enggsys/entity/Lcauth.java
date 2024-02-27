@@ -23,9 +23,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(indexes = {
-		@Index(name = "LCAUTH2", columnList = "lcahBldgcode Asc, lcahMatgroup Asc, lcahPartycode Asc, lcahAuthnum Asc, lcahAuthtype Asc", unique = true)
+		@Index(name = "LCAUTH2", columnList = "lcahBldgcode Asc, lcahMatgroup Asc, lcahPartycode Asc, lcahAuthnum Asc, lcahAuthtype Asc", unique = true),
+		@Index(name = "LCAUTH1", columnList = "lcahAuthnum Asc", unique = true)
+		
 })
-
 public class Lcauth implements Serializable {
 	private static final long serialVersionUID = 1L;
 

@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 
-public class LCAuthRequestBean {
+public class LCAuthPrRequestBean {
 
 	private String bldgcode;
 	private String partytype;

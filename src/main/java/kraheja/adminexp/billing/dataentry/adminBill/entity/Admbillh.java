@@ -109,7 +109,7 @@ public class Admbillh implements Serializable {
 	private String adblhPartytype ;
 
 	@Column(name="ADBLH_PASSEDON")
-	private LocalDate adblhPassedon ;
+	private LocalDateTime adblhPassedon ;
 
 	@Column(name="ADBLH_PROJECT")
 	private String adblhProject ;
