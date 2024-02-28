@@ -1,11 +1,15 @@
 package kraheja.enggsys.repository;
 
+import java.time.LocalDate;
+import java.util.List;
+
 import javax.persistence.Tuple;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import kraheja.enggsys.entity.Lcauth;
 import kraheja.enggsys.entity.Lccert;
 import kraheja.enggsys.entity.LccertCK;
 
@@ -20,4 +24,11 @@ public interface LccertRepository extends JpaRepository<Lccert, LccertCK> {
 	
 	@Query(value = "SELECT Max(lcer_certnum) FROM lccert WHERE trim(lcer_contract) = ?", nativeQuery = true)
 	String fetchLastCertNumber(String recId);
+	
+	// Not added one condition auth_num like '%' I think it is not required
+	List<Lccert> findByLcerPrintedonAndLcerUserid(LocalDate printedon, String userid);
+	
+	@Query("SELECT e FROM Lccert e WHERE TRIM(e.lccertCK.lcerCertnum) IN :authNumList")
+	List<Lccert> findByLccertCK_LcerCertnumIn(List<String> authNumList);
+	
 }
