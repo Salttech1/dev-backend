@@ -45,6 +45,7 @@ public class AdminAdvancePaymentImpl implements AdminAdvanceBillPaymentService {
 
 				AdmadvanceResponseBean admadvanceResponseBean = AdmadvanceEntityPojoMapper.fetchAdmadvanceEntityPojoMapper
 						.apply(new Object[] { admadvanceEntity });
+				log.info("admadvanceResponseBean : {}",admadvanceResponseBean);
 				return new GenericResponse<>(true, "Data fetched successfully", admadvanceResponseBean);
 
 			}

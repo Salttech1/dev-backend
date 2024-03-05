@@ -26,7 +26,8 @@ public interface LccertRepository extends JpaRepository<Lccert, LccertCK> {
 	String fetchLastCertNumber(String recId);
 	
 	// Not added one condition auth_num like '%' I think it is not required
-	List<Lccert> findByLcerPrintedonAndLcerUserid(LocalDate printedon, String userid);
+	@Query(value = "select * from lccert where lcer_printedon IS null and trim(lcer_userid) =?", nativeQuery =true)
+	List<Lccert> findByLcerPrintedonISNULLAndLcerUserid(String userid);
 	
 	@Query("SELECT e FROM Lccert e WHERE TRIM(e.lccertCK.lcerCertnum) IN :authNumList")
 	List<Lccert> findByLccertCK_LcerCertnumIn(List<String> authNumList);

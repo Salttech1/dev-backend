@@ -1,6 +1,9 @@
 package kraheja.enggsys.management.dataentry.logicnote.payload.request;
 import java.time.LocalDate;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -14,7 +17,8 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Tender {
+@JsonInclude(Include.NON_DEFAULT)
+public class Vendor {
 
 	private String partyType;
 	private String partyCode;
@@ -29,5 +33,5 @@ public class Tender {
 	private LocalDate orderDate;
 	private LocalDate deliveryDate;
 	private String deliveryWeeks;
-	private TenderAddress tenderAddress;
+//	private TenderAddress tenderAddress;
 }

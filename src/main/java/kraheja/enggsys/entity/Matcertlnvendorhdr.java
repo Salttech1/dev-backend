@@ -39,10 +39,10 @@ public class Matcertlnvendorhdr implements Serializable {
 	private String mcvhBrand ;
 
 	@Column(name="MCVH_CURRENCYAMT")
-	private Integer mcvhCurrencyamt ;
+	private Double mcvhCurrencyamt ;
 
 	@Column(name="MCVH_CURRENCYRATE")
-	private Integer mcvhCurrencyrate ;
+	private Double mcvhCurrencyrate ;
 
 	@Column(name="MCVH_CURRENCYTYPE")
 	private String mcvhCurrencytype ;

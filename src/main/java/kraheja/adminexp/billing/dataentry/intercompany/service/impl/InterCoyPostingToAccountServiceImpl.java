@@ -311,7 +311,7 @@ public class InterCoyPostingToAccountServiceImpl implements InterCoyPostingToAcc
 						actrandRepository.saveAll(actrandEntityList);
 
 						if (locCompanyYN) {
-
+							
 							genericAccountingLogic.updateActranh(locICbillAcTranser,
 									intercoybillheader.getIcbehTrandate()
 											.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
@@ -330,12 +330,17 @@ public class InterCoyPostingToAccountServiceImpl implements InterCoyPostingToAcc
 							List<ActrandBean> intercompanyCgstAmountBreakup = new ArrayList<>();
 							List<ActrandBean> intercompanySgstAmountBreakup = new ArrayList<>();
 
+							
+							if(intercoybilldetail.getIcbedAcmajor().trim().contains("40502247")) {
+								log.debug("Stop : {} ",intercoybilldetail.getIcbedAcmajor());
+							}
+							
 							intercompanyInvoiceBreakup = GenericAccountingLogic.initialiseActrandBreakups("BO",
 									interCompanyAcMajor,
 									Objects.isNull(intercoybilldetail.getIcbedMintype()) ? " "
 											: intercoybilldetail.getIcbedMintype(),
 									Objects.isNull(intercoybilldetail.getIcbedMinor()) ? " "
-											: intercoybilldetail.getIcbedMinor(),
+											: intercoybilldetail.getIcbedMinor().trim(),
 									intercoybillheader.getIcbehPartytype(), intercoybillheader.getIcbehCoy(), "GL",
 									Objects.isNull(intercoybilldetail.getIcbedMinor()) ? " "
 											: intercoybilldetail.getIcbedMinor(),

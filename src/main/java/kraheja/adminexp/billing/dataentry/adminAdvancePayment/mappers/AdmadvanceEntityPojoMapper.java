@@ -37,7 +37,8 @@ public interface AdmadvanceEntityPojoMapper {
 						Objects.nonNull(admadvanceEntity.getAdvnPassedon()) ? admadvanceEntity.getAdvnPassedon() : null)
 				.pinvdate(
 						Objects.nonNull(admadvanceEntity.getAdvnPinvdate()) ? admadvanceEntity.getAdvnPinvdate() : null)
-				.pinvno(admadvanceEntity.getAdvnPinvno()).project(admadvanceEntity.getAdvnProject())
+				.pinvno(admadvanceEntity.getAdvnPinvno())
+				.project(Objects.nonNull(admadvanceEntity.getAdvnProject()) ? admadvanceEntity.getAdvnProject() : null)
 				.site(admadvanceEntity.getAdvnSite()).status(admadvanceEntity.getAdvnStatus())
 				.tdsacmajor(admadvanceEntity.getAdvnTdsacmajor()).tdsamount(admadvanceEntity.getAdvnTdsamount())
 				.tdsperc(admadvanceEntity.getAdvnTdsperc()).today(admadvanceEntity.getAdvnToday())
@@ -137,7 +138,7 @@ public interface AdmadvanceEntityPojoMapper {
 		admadvanceEntity.setAdvnOrigsite(GenericAuditContextHolder.getContext().getSite());
 		admadvanceEntity.setAdvnPaidamount(
 				Objects.nonNull(admadvanceRequestBean.getPaidamount()) ? admadvanceRequestBean.getPaidamount()
-						: admadvanceEntity.getAdvnPaidamount());
+						: BigInteger.ZERO.doubleValue());
 		admadvanceEntity.setAdvnPaiddate(
 				Objects.nonNull(admadvanceRequestBean.getPaiddate()) ? admadvanceRequestBean.getPaiddate()
 						: admadvanceEntity.getAdvnPaiddate());

@@ -59,4 +59,6 @@ public class ApiResponseMessage {
 	public static final String ONLY_ALLOWED_DIGITS = "the field must be digit only.";
 	public static final String ONLY_ALLOWED_Y_OR_N = "only allowed value Y as Yes, N as No.";
 	public static final String ONLY_ONE_ALLOWED_BOTH_OF_THEM_MASTERAUTHYN_OR_MASTERAUTHNO = "allowed only one either masterAuthYN or masterAuthNo.";
+	public static final String CANNOT_MODIFY_THIS_REOCRD = "Cannot Modify this reocrd.Final Bill Generated for this Logic Note.";
+	public static final String ONLY_ONE_ALLOWED_BOTH_OF_THEM_MASTERCERTYN_OR_MASTERCERTNO = "allowed only one either masterCertificateYN or masterCertificateNo.";
 }

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import kraheja.enggsys.bean.CertificateDetailBean;
 import kraheja.enggsys.entity.Cert;
+import kraheja.enggsys.entity.Lccert;
 import kraheja.enggsys.entity.Cert.CertCK;
 
 @Repository
@@ -60,4 +61,10 @@ public interface CertRepository extends JpaRepository<Cert, CertCK> {
 	@Query("SELECT c FROM Cert c WHERE TRIM(c.certContract) = :contract AND TRIM(c.certCerttype) != :certType AND c.certPassedon = :passedOn ")
 	Cert fetchByContractIdAndCertTypeNotAndPassedOn(String contract,String certType,LocalDate passedOn); 
 
+	// Not added one condition auth_num like '%' I think it is not required
+	List<Cert> findByCertPrintedonAndCertUserid(LocalDate printedon, String userid);
+	
+	@Query("SELECT e FROM Cert e WHERE TRIM(e.certCK.certCertnum) IN :authNumList")
+	List<Cert> findByCertCK_CertCertnumIn(List<String> authNumList);
+	
 }

@@ -15,4 +15,7 @@ public interface MatcertlnhdrRepository extends JpaRepository<Matcertlnhdr, Matc
 	
 	@Query("SELECT count(*) FROM Matcertlnhdr m  WHERE trim(m.mclhProjcode) = :projectCode")
 	Integer findMatcertlnhdrCountByProjCode(String projectCode);
+	
+	@Query(value = "select COALESCE(mclh_finalbillcloseyn, 'N') from matcertlnhdr where mclh_logicnotenum=?", nativeQuery = true)
+	String findByMatcertlnhdrCK_MclhLogicnotenum(String logicnotenum);
 }

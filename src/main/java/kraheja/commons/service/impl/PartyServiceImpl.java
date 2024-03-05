@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import kraheja.adminexp.vehicleexp.dataentry.bean.response.VehicleInfoBean;
+import kraheja.commons.bean.response.GenericResponse;
 import kraheja.commons.bean.response.PartyNameGstResponseBean;
 import kraheja.commons.bean.response.ServiceResponseBean;
 import kraheja.commons.entity.Party;
@@ -33,4 +34,13 @@ public class PartyServiceImpl implements PartyService{
 				.parGstno(partyNameGst.getParGstno()).build()).build());
 //		return null;
 	}
+
+	@Override
+	public GenericResponse<Void> addParty() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	
+	
 }

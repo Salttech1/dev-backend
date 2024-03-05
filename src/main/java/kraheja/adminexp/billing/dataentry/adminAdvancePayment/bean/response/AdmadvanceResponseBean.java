@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 
 @Data
 @Builder
-@JsonInclude(Include.NON_NULL)
 @NoArgsConstructor
 @AllArgsConstructor
 

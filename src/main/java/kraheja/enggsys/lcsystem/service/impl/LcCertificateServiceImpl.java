@@ -81,7 +81,7 @@ public class LcCertificateServiceImpl implements LcCertificateService {
 				.workCode(contract.getConttWorkcode()).partyCode(contract.getConttPartycode())
 				.partyType(contract.getConttPartytype()).prvCertAmt(pCertAmt).totalAmtCertified(totalAmt)
 				.prvTotTwoptc(totTwoptc).durationFrom(fromDate).durationUpto(toDate).build();
-//		log.debug("contractResponse obtaint: {}", contractResponse);
+//		log.debug("contractResponse obtain: {}", contractResponse);
 
 		return contractResponse;
 	}
@@ -157,13 +157,14 @@ public class LcCertificateServiceImpl implements LcCertificateService {
 			log.debug("contractResponse: {}", contractResponse);
 
 			/*
-			 * The tranType is decidede it will update or create entry. it tranType will
+			 * The tranType is decided it will update or create entry. it tranType will
 			 * added after performed an action on the button.
 			 */
 			if (request.getTranType().equals("N")) {
 				lcerCertnum = GenericCounterIncrementLogicUtil.generateTranNo("#TSER", "LCCER");
 				log.debug("created new certificate number: {}", lcerCertnum);
 				
+				request.setRevNum(0);
 				runser = contractResponse.getPrvRunSer() + 1;
 				
 			} else {

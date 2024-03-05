@@ -4,6 +4,9 @@ import java.time.LocalDate;
 
 import javax.validation.constraints.NotEmpty;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,6 +20,7 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@JsonInclude(Include.NON_DEFAULT)
 public class NarrationAreaRequest {
 
 	private LocalDate date;
@@ -27,7 +31,6 @@ public class NarrationAreaRequest {
 	private String importUnder;
 	@NotEmpty(message = "Please enter Logic Description.")
 	private String packageName;
-	private String tranType;
 	private String scopeOfWork;
 	private String commercialDescription1;
 	private String commercialDescription2;

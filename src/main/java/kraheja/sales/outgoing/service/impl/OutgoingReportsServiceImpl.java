@@ -19,7 +19,6 @@ import javax.persistence.Query;
 import javax.persistence.Tuple;
 import javax.transaction.Transactional;
 
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,10 +58,25 @@ public class OutgoingReportsServiceImpl implements OutgoingReportsService {
 	@PersistenceContext
 	private EntityManager entityManager;
 
-	public String initBldgInfo(ResponseEntity<?> bldgInfo, String colNameToSearch, int indexOfSearchChars,
-			int extractChars) {
+	/**
+	 * Initialize <code>Building</code> information
+	 * <p>
+	 * Parameters must be registered before the stored procedure can be executed.
+	 * 
+	 * @param bldgInfo        - Building Info Response (ResponseEntity<?>)
+	 * @param colNameToSearch - Column Name to search (String)
+	 * @param extractChars    - No. of characters to extract (int)
+	 * 
+	 * @return Building Info Value
+	 * 
+	 * @throws IllegalArgumentException if a stored procedure of the given name does
+	 *                                  not exist (or the query execution will fail)
+	 * @since 1.0
+	 */
+	public String initBldgInfo(ResponseEntity<?> bldgInfo, String colNameToSearch, int extractChars) {
 		int indexOfInfo;
 		String bldgValToReturn;
+		int indexOfSearchChars = colNameToSearch.length() + 1;
 		indexOfInfo = bldgInfo.getBody().toString().indexOf(colNameToSearch) + indexOfSearchChars;
 		bldgValToReturn = bldgInfo.getBody().toString().substring(indexOfInfo, indexOfInfo + extractChars);
 		indexOfInfo = bldgValToReturn.indexOf(",");
@@ -257,7 +271,7 @@ public class OutgoingReportsServiceImpl implements OutgoingReportsService {
 	}
 
 	public ResponseEntity<?> calcInfraAmt(String hsnCode, String qtrEndDate, String qtrEndyyyymm, String ownerId,
-			String parkingNo, String carParkOwnerId, String billNo, String unitBillNo, String billType, String billMode,
+			String unitNo, String unitOwnerId, String billNo, String unitBillNo, String billType, String billMode,
 			String billDate, String billModeDesc, String invoiceNo, String irnNo, String sessionId, String parkingNos) {
 
 		String wing, bldgCode, flatNum, billMonth, startOgMonth, qtrEndDateCalc = "", qtrYear = "", currBillDate = "",
@@ -272,7 +286,7 @@ public class OutgoingReportsServiceImpl implements OutgoingReportsService {
 		try {
 			bldgCode = ownerId.substring(0, 4);
 
-			if (ownerId == carParkOwnerId) {
+			if (ownerId == unitOwnerId) {
 				billNo = unitBillNo;
 			}
 			wing = ownerId.substring(4, 5);
@@ -302,7 +316,7 @@ public class OutgoingReportsServiceImpl implements OutgoingReportsService {
 						} else {
 							currBillMonth = currBillMonth + startMonth;
 						}
-						amount = fetchOgRate(amtColName, bldgCode, wing, parkingNo, currBillMonth, billType);
+						amount = fetchOgRate(amtColName, bldgCode, wing, unitNo, currBillMonth, billType);
 //						if (LocalDate.parse(billDate).compareTo(LocalDate.parse("01/03/2018")) > 0
 //								|| LocalDate.parse(billDate).compareTo(LocalDate.parse("01/03/2018")) == 0) {
 //							ceilamount = (int) (0.5 + amount);
@@ -318,8 +332,8 @@ public class OutgoingReportsServiceImpl implements OutgoingReportsService {
 						if (currBillDate == "") {
 							currBillDate = billDate;
 						}
-						status = insertogbilltemp(ownerId, bldgCode, wing, flatNum, parkingNo, particularDesc, amount,
-								currBillDate, qtrEndDate, sessionId, billNo, unitBillNo, carParkOwnerId, currBillMonth,
+						status = insertogbilltemp(ownerId, bldgCode, wing, flatNum, unitNo, particularDesc, amount,
+								currBillDate, qtrEndDate, sessionId, billNo, unitBillNo, unitOwnerId, currBillMonth,
 								particularCode, billModeDesc, invoiceNo, irnNo, parkingNos);
 						if (status != "SUCCESS") {
 							return ResponseEntity
@@ -335,7 +349,7 @@ public class OutgoingReportsServiceImpl implements OutgoingReportsService {
 					} else {
 						currBillMonth = qtrYear + endMonth.toString();
 					}
-					amount = fetchOgRate(amtColName, bldgCode, wing, parkingNo, currBillMonth, billType);
+					amount = fetchOgRate(amtColName, bldgCode, wing, unitNo, currBillMonth, billType);
 					if (Integer.parseInt(billMonth) >= Integer.parseInt("200804")) {
 						if (LocalDate.parse(billDate).compareTo(LocalDate.parse("01/03/2018")) > 0
 								|| LocalDate.parse(billDate).compareTo(LocalDate.parse("01/03/2018")) == 0) {
@@ -346,8 +360,8 @@ public class OutgoingReportsServiceImpl implements OutgoingReportsService {
 					if (currBillDate == "") {
 						currBillDate = billDate;
 					}
-					status = insertogbilltemp(ownerId, bldgCode, wing, flatNum, parkingNo, particularDesc, amount,
-							currBillDate, qtrEndDate, sessionId, billNo, unitBillNo, carParkOwnerId, currBillMonth,
+					status = insertogbilltemp(ownerId, bldgCode, wing, flatNum, unitNo, particularDesc, amount,
+							currBillDate, qtrEndDate, sessionId, billNo, unitBillNo, unitOwnerId, currBillMonth,
 							particularCode, billModeDesc, invoiceNo, irnNo, parkingNos);
 					if (status != "SUCCESS") {
 						return ResponseEntity
@@ -364,15 +378,15 @@ public class OutgoingReportsServiceImpl implements OutgoingReportsService {
 					.message("Error while calculating Infra amount" + e.getMessage()).build());
 		}
 
-		return ResponseEntity.ok(ServiceResponseBean.builder().status(Boolean.TRUE).data(sessionId)
-				.message("Added successfully").build());
+		return ResponseEntity.ok(
+				ServiceResponseBean.builder().status(Boolean.TRUE).data(amount).message("Added successfully").build());
 
 	}
 
-	public String calcMaintAmt(String hsnCode, String qtrEndDate, String qtrEndyyyymm, String ownerId, String parkingNo,
-			String carParkOwnerId, String billNo, String unitBillNo, String billType, String billMode, String billDate,
-			String billModeDesc, String invoiceNo, String irnNo, String sessionId, Double cGstPerc, Double sGstPerc,
-			Double iGstPerc, String parkingNos) {
+	public ResponseEntity<?> calcMaintAmt(String hsnCode, String qtrEndDate, String qtrEndyyyymm, String ownerId,
+			String unitNo, String unitOwnerId, String billNo, String unitBillNo, String billType, String billMode,
+			String billDate, String billModeDesc, String invoiceNo, String irnNo, String sessionId, Double cGstPerc,
+			Double sGstPerc, Double iGstPerc, String parkingNos) {
 
 		String wing, bldgCode, flatNum, billMonth, startOgMonth, qtrEndDateCalc = "", qtrYear = "", currBillDate = "",
 				currBillMonth, status, amtColName, particularDesc, particularCode;
@@ -395,7 +409,7 @@ public class OutgoingReportsServiceImpl implements OutgoingReportsService {
 
 		try {
 
-			if (ownerId == carParkOwnerId) {
+			if (ownerId == unitOwnerId) {
 				billNo = unitBillNo;
 			}
 			wing = ownerId.substring(4, 5);
@@ -424,51 +438,60 @@ public class OutgoingReportsServiceImpl implements OutgoingReportsService {
 					} else {
 						currBillMonth = currBillMonth + startMonth;
 					}
-					amount = fetchOgRate(amtColName, bldgCode, wing, parkingNo, currBillMonth, billType);
+					amount = fetchOgRate(amtColName, bldgCode, wing, unitNo, currBillMonth, billType);
 					if (currBillDate == "") {
 						currBillDate = billDate;
 					}
-					status = insertogbilltemp(ownerId, bldgCode, wing, flatNum, parkingNo, particularDesc, amount,
-							currBillDate, qtrEndDate, sessionId, billNo, unitBillNo, carParkOwnerId, currBillMonth,
+					status = insertogbilltemp(ownerId, bldgCode, wing, flatNum, unitNo, particularDesc, amount,
+							currBillDate, qtrEndDate, sessionId, billNo, unitBillNo, unitOwnerId, currBillMonth,
 							particularCode, billModeDesc, invoiceNo, irnNo, parkingNos);
 					if (status != "SUCCESS") {
-						return status;
+						return ResponseEntity
+								.ok(ServiceResponseBean.builder().status(Boolean.FALSE).message(status).build());
 					}
-					status = processGstAmt(cGstPerc, amount, billDate, ownerId, bldgCode, wing, flatNum, parkingNo,
+					status = processGstAmt(cGstPerc, amount, billDate, ownerId, bldgCode, wing, flatNum, unitNo,
 							" CGST @" + cGstPerc.toString() + "%.", "CGST", currBillDate, qtrEndDate, sessionId, billNo,
-							unitBillNo, carParkOwnerId, currBillMonth, billModeDesc, invoiceNo, irnNo, parkingNos);
+							unitBillNo, unitOwnerId, currBillMonth, billModeDesc, invoiceNo, irnNo, parkingNos);
 					if (status != "SUCCESS") {
-						return status;
+						return ResponseEntity
+								.ok(ServiceResponseBean.builder().status(Boolean.FALSE).message(status).build());
+
 					}
-					status = processGstAmt(sGstPerc, amount, billDate, ownerId, bldgCode, wing, flatNum, parkingNo,
+					status = processGstAmt(sGstPerc, amount, billDate, ownerId, bldgCode, wing, flatNum, unitNo,
 							" SGST @" + sGstPerc.toString() + "%.", "SGST", currBillDate, qtrEndDate, sessionId, billNo,
-							unitBillNo, carParkOwnerId, currBillMonth, billModeDesc, invoiceNo, irnNo, parkingNos);
+							unitBillNo, unitOwnerId, currBillMonth, billModeDesc, invoiceNo, irnNo, parkingNos);
 					if (status != "SUCCESS") {
-						return status;
+						return ResponseEntity
+								.ok(ServiceResponseBean.builder().status(Boolean.FALSE).message(status).build());
+
 					}
-					status = processGstAmt(iGstPerc, amount, billDate, ownerId, bldgCode, wing, flatNum, parkingNo,
+					status = processGstAmt(iGstPerc, amount, billDate, ownerId, bldgCode, wing, flatNum, unitNo,
 							" IGST @" + iGstPerc.toString() + "%.", "IGST", currBillDate, qtrEndDate, sessionId, billNo,
-							unitBillNo, carParkOwnerId, currBillMonth, billModeDesc, invoiceNo, irnNo, parkingNos);
+							unitBillNo, unitOwnerId, currBillMonth, billModeDesc, invoiceNo, irnNo, parkingNos);
 					if (status != "SUCCESS") {
-						return status;
+						return ResponseEntity
+								.ok(ServiceResponseBean.builder().status(Boolean.FALSE).message(status).build());
+
 					}
 				}
 			} else {
-				return "Start OG Month is blank";
+				return ResponseEntity.ok(
+						ServiceResponseBean.builder().status(Boolean.FALSE).message("Start OG Month is blank").build());
 			}
 
 		} catch (Exception e) {
-			return "Error while calculating Maintenance amount" + e.getMessage();
+			return ResponseEntity.ok(ServiceResponseBean.builder().status(Boolean.FALSE)
+					.message("Error while calculating Maintenance amount" + e.getMessage()).build());
 		}
 
-		return "SUCCESS";
-
+		return ResponseEntity.ok(
+				ServiceResponseBean.builder().status(Boolean.TRUE).data(amount).message("Added successfully").build());
 	}
 
-	public String calcAdminAmt(String hsnCode, String qtrEndDate, String qtrEndyyyymm, String ownerId, String parkingNo,
-			String carParkOwnerId, String billNo, String unitBillNo, String billType, String billMode, String billDate,
-			String billModeDesc, String invoiceNo, String irnNo, String sessionId, Double cGstPerc, Double sGstPerc,
-			Double iGstPerc, String parkingNos) {
+	public ResponseEntity<?> calcAdminAmt(String hsnCode, String qtrEndDate, String qtrEndyyyymm, String ownerId,
+			String unitNo, String unitOwnerId, String billNo, String unitBillNo, String billType, String billMode,
+			String billDate, String billModeDesc, String invoiceNo, String irnNo, String sessionId, Double cGstPerc,
+			Double sGstPerc, Double iGstPerc, String parkingNos) {
 
 		String wing, bldgCode, flatNum, billMonth, startOgMonth, qtrEndDateCalc = "", qtrYear = "", currBillDate = "",
 				currBillMonth, status, amtColName, particularDesc, particularCode;
@@ -485,7 +508,7 @@ public class OutgoingReportsServiceImpl implements OutgoingReportsService {
 			if (billMode == "Q") {
 
 			}
-			if (ownerId == carParkOwnerId) {
+			if (ownerId == unitOwnerId) {
 				billNo = unitBillNo;
 			}
 			wing = ownerId.substring(4, 5);
@@ -514,50 +537,57 @@ public class OutgoingReportsServiceImpl implements OutgoingReportsService {
 					} else {
 						currBillMonth = currBillMonth + startMonth;
 					}
-					amount = fetchOgRate(amtColName, bldgCode, wing, parkingNo, currBillMonth, billType);
+					amount = fetchOgRate(amtColName, bldgCode, wing, unitNo, currBillMonth, billType);
 					if (currBillDate == "") {
 						currBillDate = billDate;
 					}
-					status = insertogbilltemp(ownerId, bldgCode, wing, flatNum, parkingNo, particularDesc, amount,
-							currBillDate, qtrEndDate, sessionId, billNo, unitBillNo, carParkOwnerId, currBillMonth,
+					status = insertogbilltemp(ownerId, bldgCode, wing, flatNum, unitNo, particularDesc, amount,
+							currBillDate, qtrEndDate, sessionId, billNo, unitBillNo, unitOwnerId, currBillMonth,
 							particularCode, billModeDesc, invoiceNo, irnNo, parkingNos);
 					if (status != "SUCCESS") {
-						return status;
+						return ResponseEntity
+								.ok(ServiceResponseBean.builder().status(Boolean.FALSE).message(status).build());
 					}
-					status = processGstAmt(cGstPerc, amount, billDate, ownerId, bldgCode, wing, flatNum, parkingNo,
+					status = processGstAmt(cGstPerc, amount, billDate, ownerId, bldgCode, wing, flatNum, unitNo,
 							" CGST @" + cGstPerc.toString() + "%", "CGST", currBillDate, qtrEndDate, sessionId, billNo,
-							unitBillNo, carParkOwnerId, currBillMonth, billModeDesc, invoiceNo, irnNo, parkingNos);
+							unitBillNo, unitOwnerId, currBillMonth, billModeDesc, invoiceNo, irnNo, parkingNos);
 					if (status != "SUCCESS") {
-						return status;
+						return ResponseEntity
+								.ok(ServiceResponseBean.builder().status(Boolean.FALSE).message(status).build());
 					}
-					status = processGstAmt(sGstPerc, amount, billDate, ownerId, bldgCode, wing, flatNum, parkingNo,
+					status = processGstAmt(sGstPerc, amount, billDate, ownerId, bldgCode, wing, flatNum, unitNo,
 							" SGST @" + sGstPerc.toString() + "%", "SGST", currBillDate, qtrEndDate, sessionId, billNo,
-							unitBillNo, carParkOwnerId, currBillMonth, billModeDesc, invoiceNo, irnNo, parkingNos);
+							unitBillNo, unitOwnerId, currBillMonth, billModeDesc, invoiceNo, irnNo, parkingNos);
 					if (status != "SUCCESS") {
-						return status;
+						return ResponseEntity
+								.ok(ServiceResponseBean.builder().status(Boolean.FALSE).message(status).build());
 					}
-					status = processGstAmt(iGstPerc, amount, billDate, ownerId, bldgCode, wing, flatNum, parkingNo,
+					status = processGstAmt(iGstPerc, amount, billDate, ownerId, bldgCode, wing, flatNum, unitNo,
 							" IGST @" + iGstPerc.toString() + "%", "IGST", currBillDate, qtrEndDate, sessionId, billNo,
-							unitBillNo, carParkOwnerId, currBillMonth, billModeDesc, invoiceNo, irnNo, parkingNos);
+							unitBillNo, unitOwnerId, currBillMonth, billModeDesc, invoiceNo, irnNo, parkingNos);
 					if (status != "SUCCESS") {
-						return status;
+						return ResponseEntity
+								.ok(ServiceResponseBean.builder().status(Boolean.FALSE).message(status).build());
 					}
 				}
 			} else {
-				return "Start OG Month is blank";
+				return ResponseEntity.ok(
+						ServiceResponseBean.builder().status(Boolean.FALSE).message("Start OG Month is blank").build());
 			}
 
 		} catch (Exception e) {
-			return "Error while calculating Admin amount" + e.getMessage();
+			return ResponseEntity.ok(ServiceResponseBean.builder().status(Boolean.FALSE)
+					.message("Error while calculating Admin amount" + e.getMessage()).build());
 		}
 
-		return "SUCCESS";
+		return ResponseEntity.ok(
+				ServiceResponseBean.builder().status(Boolean.TRUE).data(amount).message("Added successfully").build());
 
 	}
 
-	public String calcArrearsAmt(String hsnCode, String qtrEndDate, String qtrEndyyyymm, String ownerId,
-			String parkingNo, String carParkOwnerId, String billNo, String unitBillNo, String billType, String billMode,
-			String billDate, String billModeDesc, String invoiceNo, String irnNo, String sessionId, String parkingNos) {
+	public String calcArrearsAmt(String hsnCode, String qtrEndDate, String qtrEndyyyymm, String ownerId, String unitNo,
+			String unitOwnerId, String billNo, String unitBillNo, String billType, String billMode, String billDate,
+			String billModeDesc, String invoiceNo, String irnNo, String sessionId, String parkingNos) {
 
 		String wing, prevBillNo = "", bldgCode, flatNum, billMonth, startOgMonth, qtrEndDateCalc = "", qtrYear = "",
 				currBillDate = "", currBillMonth = "", status, particularDesc, particularCode, sqlString, sqlWhere,
@@ -566,17 +596,17 @@ public class OutgoingReportsServiceImpl implements OutgoingReportsService {
 		Double prevBillTotAmount, totReceiptAmount, arrearsAmount = 0.0;
 		Integer startMonth, endMonth;
 
-		bldgCode = carParkOwnerId.substring(0, 4);
+		bldgCode = unitOwnerId.substring(0, 4);
 		particularDesc = "Arrears";
 		particularCode = "ARRE";
 
 		try {
 
-			if (ownerId == carParkOwnerId) {
+			if (ownerId == unitOwnerId) {
 				billNo = unitBillNo;
 			}
-			wing = carParkOwnerId.substring(4, 5);
-			flatNum = carParkOwnerId.substring(5).trim();
+			wing = unitOwnerId.substring(4, 5);
+			flatNum = unitOwnerId.substring(5).trim();
 			billMonth = billDate.substring(6) + billDate.substring(3, 5);
 
 			startOgMonth = initStartOgMonth(ownerId, bldgCode, flatNum, wing, billMonth, billType, billMode);
@@ -654,9 +684,9 @@ public class OutgoingReportsServiceImpl implements OutgoingReportsService {
 				qtrEndDate = YearMonth.parse(billDate.substring(6) + "-" + billDate.substring(3, 5),
 						DateTimeFormatter.ofPattern("yyyy-MM")).atEndOfMonth().toString();
 			}
-			status = insertogbilltemp(ownerId, bldgCode, wing, ownerId.substring(5).trim(), parkingNo, particularDesc,
-					arrearsAmount, currBillDate, qtrEndDate, sessionId, billNo, unitBillNo, carParkOwnerId,
-					currBillMonth, particularCode, billModeDesc, invoiceNo, irnNo, parkingNos);
+			status = insertogbilltemp(ownerId, bldgCode, wing, ownerId.substring(5).trim(), unitNo, particularDesc,
+					arrearsAmount, currBillDate, qtrEndDate, sessionId, billNo, unitBillNo, unitOwnerId, currBillMonth,
+					particularCode, billModeDesc, invoiceNo, irnNo, parkingNos);
 			if (status != "SUCCESS") {
 				return status;
 			}
@@ -669,9 +699,9 @@ public class OutgoingReportsServiceImpl implements OutgoingReportsService {
 
 	}
 
-	public String calcInterestAmt(String hsnCode, String qtrEndDate, String qtrEndyyyymm, String ownerId,
-			String parkingNo, String carParkOwnerId, String billNo, String unitBillNo, String billType, String billMode,
-			String billDate, String billModeDesc, String invoiceNo, String irnNo, String sessionId, String parkingNos) {
+	public String calcInterestAmt(String hsnCode, String qtrEndDate, String qtrEndyyyymm, String ownerId, String unitNo,
+			String unitOwnerId, String billNo, String unitBillNo, String billType, String billMode, String billDate,
+			String billModeDesc, String invoiceNo, String irnNo, String sessionId, String parkingNos) {
 
 		String wing, prevBillNo = "", bldgCode, flatNum, billMonth, startOgMonth, qtrEndDateCalc = "", qtrYear = "",
 				currBillDate = "", currBillMonth = "", status, particularDesc, particularCode, sqlString, sqlWhere,
@@ -683,17 +713,17 @@ public class OutgoingReportsServiceImpl implements OutgoingReportsService {
 		Integer startMonth, endMonth, chqCount = 0;
 		long noOfDays = 0;
 
-		bldgCode = carParkOwnerId.substring(0, 4);
+		bldgCode = unitOwnerId.substring(0, 4);
 		particularDesc = "Interest On Arrears";
 		particularCode = "INTC";
 
 		try {
 
-			if (ownerId == carParkOwnerId) {
+			if (ownerId == unitOwnerId) {
 				billNo = unitBillNo;
 			}
-			wing = carParkOwnerId.substring(4, 5);
-			flatNum = carParkOwnerId.substring(5).trim();
+			wing = unitOwnerId.substring(4, 5);
+			flatNum = unitOwnerId.substring(5).trim();
 			billMonth = billDate.substring(6) + billDate.substring(3, 5);
 
 			startOgMonth = initStartOgMonth(ownerId, bldgCode, flatNum, wing, billMonth, billType, billMode);
@@ -886,8 +916,8 @@ public class OutgoingReportsServiceImpl implements OutgoingReportsService {
 //				qtrEndDate = YearMonth.parse(billDate.substring(6) + "-" + billDate.substring(3, 5),
 //						DateTimeFormatter.ofPattern("yyyy-MM")).atEndOfMonth().toString();
 //			}
-			status = insertogbilltemp(ownerId, bldgCode, wing, ownerId.substring(5).trim(), parkingNo, particularDesc,
-					finalIntAmt, currBillDate, qtrEndDate, sessionId, billNo, unitBillNo, carParkOwnerId, currBillMonth,
+			status = insertogbilltemp(ownerId, bldgCode, wing, ownerId.substring(5).trim(), unitNo, particularDesc,
+					finalIntAmt, currBillDate, qtrEndDate, sessionId, billNo, unitBillNo, unitOwnerId, currBillMonth,
 					particularCode, billModeDesc, invoiceNo, irnNo, parkingNos);
 			if (status != "SUCCESS") {
 				return status;
@@ -902,9 +932,9 @@ public class OutgoingReportsServiceImpl implements OutgoingReportsService {
 	}
 
 	public String calcWaterElecNaTaxAmt(String particularCode, String particularDesc, String amtColName, String hsnCode,
-			String qtrEndDate, String qtrEndyyyymm, String ownerId, String parkingNo, String carParkOwnerId,
-			String billNo, String unitBillNo, String billType, String billMode, String billDate, String billModeDesc,
-			String invoiceNo, String irnNo, String sessionId, String parkingNos) {
+			String qtrEndDate, String qtrEndyyyymm, String ownerId, String unitNo, String unitOwnerId, String billNo,
+			String unitBillNo, String billType, String billMode, String billDate, String billModeDesc, String invoiceNo,
+			String irnNo, String sessionId, String parkingNos) {
 
 		String wing, bldgCode, flatNum, billMonth, startOgMonth, qtrEndDateCalc = "", qtrYear = "", currBillDate = "",
 				currBillMonth, status;
@@ -917,7 +947,7 @@ public class OutgoingReportsServiceImpl implements OutgoingReportsService {
 			if (billMode == "Q") {
 
 			}
-			if (ownerId == carParkOwnerId) {
+			if (ownerId == unitOwnerId) {
 				billNo = unitBillNo;
 			}
 			wing = ownerId.substring(4, 5);
@@ -946,17 +976,25 @@ public class OutgoingReportsServiceImpl implements OutgoingReportsService {
 					} else {
 						currBillMonth = currBillMonth + startMonth;
 					}
-					amount = fetchOgRate(amtColName, bldgCode, wing, parkingNo, currBillMonth, billType);
-					if (LocalDate.parse(billDate).compareTo(LocalDate.parse("2018-03-01")) > 0
-							|| LocalDate.parse(billDate).compareTo(LocalDate.parse("2018-03-01")) == 0) {
+					amount = fetchOgRate(amtColName, bldgCode, wing, unitNo, currBillMonth, billType);
+
+					if (CommonUtils.INSTANCE.stringToDateFormatter(billDate)
+							.compareTo(CommonUtils.INSTANCE.stringToDateFormatter("01/03/2018")) > 0
+							|| CommonUtils.INSTANCE.stringToDateFormatter(billDate)
+									.compareTo(CommonUtils.INSTANCE.stringToDateFormatter("01/03/2018")) == 0) {
 						int ceilAmt = (int) (0.5 + Double.parseDouble(String.valueOf(amount)));
 						amount = Double.parseDouble(String.valueOf(ceilAmt));
 					}
+//					if (LocalDate.parse(billDate).compareTo(LocalDate.parse("2018-03-01")) > 0
+//							|| LocalDate.parse(billDate).compareTo(LocalDate.parse("2018-03-01")) == 0) {
+//						int ceilAmt = (int) (0.5 + Double.parseDouble(String.valueOf(amount)));
+//						amount = Double.parseDouble(String.valueOf(ceilAmt));
+//					}
 					if (currBillDate == "") {
 						currBillDate = billDate;
 					}
-					status = insertogbilltemp(ownerId, bldgCode, wing, flatNum, parkingNo, particularDesc, amount,
-							currBillDate, qtrEndDate, sessionId, billNo, unitBillNo, carParkOwnerId, currBillMonth,
+					status = insertogbilltemp(ownerId, bldgCode, wing, flatNum, unitNo, particularDesc, amount,
+							currBillDate, qtrEndDate, sessionId, billNo, unitBillNo, unitOwnerId, currBillMonth,
 							particularCode, billModeDesc, invoiceNo, irnNo, parkingNos);
 					if (status != "SUCCESS") {
 						return status;
@@ -1108,14 +1146,15 @@ public class OutgoingReportsServiceImpl implements OutgoingReportsService {
 		Double cGstPerc = 0.0;
 		Double sGstPerc = 0.0;
 		Double iGstPerc = 0.0;
+		Double totBillAmt = 0.0;
 //		Double amount = 0.0;
 		String desc, hsnCode = "995419";
 		// Fetch building info (sales state, city, type, company)
-		String bldgSalesState, bldgCity, bldgType, bldgCoy, qtrEndDate, qtrEndDateParking, billMonth, qtrEndyyyymm,
-				qtrEndyyyymmParking;
+		String bldgSalesState, bldgCity, bldgType, bldgCoy, qtrEndDate, qtrEndDateParking = "", billMonth, qtrEndyyyymm,
+				qtrEndyyyymmParking = "";
 		String bldgCode, billType, billMode, billModeDesc, ownerIdFrom, ownerIdUpto;
 		Query query;
-		int infraBldgCount;
+		Integer infraBldgCount;
 		boolean genInfraAmt = false;
 		ResponseEntity<?> calcAmtResponseBean;
 		bldgCode = outgoingReportsRequestBean.getFlatOwnerFrom().substring(0, 4);
@@ -1123,19 +1162,29 @@ public class OutgoingReportsServiceImpl implements OutgoingReportsService {
 
 		ResponseEntity<?> bldgInfo = this.buildingServiceImpl.fetchBuildingByCode(bldgCode);
 
-		bldgSalesState = initBldgInfo(bldgInfo, ", salesstate", 13, 3);
-		bldgCity = initBldgInfo(bldgInfo, ", city", 7, 5);
-		bldgType = initBldgInfo(bldgInfo, ", bldgtype", 11, 1);
-		bldgCoy = initBldgInfo(bldgInfo, ", coy", 6, 5);
+//		bldgSalesState = initBldgInfo(bldgInfo, ", salesstate", 13, 3);
+//		bldgCity = initBldgInfo(bldgInfo, ", city", 7, 5);
+//		bldgType = initBldgInfo(bldgInfo, ", bldgtype", 11, 1);
+//		bldgCoy = initBldgInfo(bldgInfo, ", coy", 6, 5);
+
+		bldgSalesState = initBldgInfo(bldgInfo, ", salesstate", 3);
+		bldgCity = initBldgInfo(bldgInfo, ", city", 5);
+		bldgType = initBldgInfo(bldgInfo, ", bldgtype", 1);
+		bldgCoy = initBldgInfo(bldgInfo, ", coy", 5);
 
 		// Fetch GST % and SAC Description
 		ResponseEntity<?> gstResponseBean = outinfraServiceImpl.fetchGstRates();
-		desc = initBldgInfo(gstResponseBean, ", description", 14, 50);
-		cGstPerc = Double.valueOf(initBldgInfo(gstResponseBean, "cgstperc", 9, 4));
-		sGstPerc = Double.valueOf(initBldgInfo(gstResponseBean, ", sgstperc", 11, 4));
+//		desc = initBldgInfo(gstResponseBean, ", description", 14, 50);
+//		cGstPerc = Double.valueOf(initBldgInfo(gstResponseBean, "cgstperc", 9, 4));
+//		sGstPerc = Double.valueOf(initBldgInfo(gstResponseBean, ", sgstperc", 11, 4));
+		desc = initBldgInfo(gstResponseBean, ", description", 50);
+		cGstPerc = Double.valueOf(initBldgInfo(gstResponseBean, "cgstperc", 4));
+		sGstPerc = Double.valueOf(initBldgInfo(gstResponseBean, ", sgstperc", 4));
+
 		if (bldgSalesState.equals("MAH")) {
 		} else {
-			iGstPerc = Double.valueOf(initBldgInfo(gstResponseBean, ", igstperc", 11, 4));
+//			iGstPerc = Double.valueOf(initBldgInfo(gstResponseBean, ", igstperc", 11, 4));
+			iGstPerc = Double.valueOf(initBldgInfo(gstResponseBean, ", igstperc", 4));
 		}
 
 //		cgst = initGstInfo(gstResponseBean, "cgstperc", 9, 4);
@@ -1165,9 +1214,17 @@ public class OutgoingReportsServiceImpl implements OutgoingReportsService {
 		query = this.entityManager.createNativeQuery(
 				"SELECT count(*) FROM entity WHERE ent_class = 'OGBIL' AND ent_id = 'INCAL' AND ent_char1 = '"
 						+ bldgCode + "' AND " + "to_date('" + billDate
-						+ "','dd/mm/yyyy') BETWEEN ent_date1 AND ent_date2",
-				Integer.class);
-		infraBldgCount = query.getFirstResult();
+						+ "','dd/mm/yyyy') BETWEEN ent_date1 AND ent_date2");
+//		infraBldgCount = (int) query.getResultList().get(0);
+
+//		Object[] result = (Object[]) query.getSingleResult();
+
+//		infraBldgCount = (Integer) result[0]; // ((Number) query.getSingleResult()).intValue();
+//		Object[] result = (Object[]) query.getSingleResult();
+//		infraBldgCount = (Integer) result[0];
+//		Object result = query.getSingleResult();
+		infraBldgCount = Integer.parseInt(query.getSingleResult().toString());
+//		infraBldgCount = 0;
 		if (infraBldgCount != 0) {
 			genInfraAmt = true;
 		}
@@ -1189,7 +1246,7 @@ public class OutgoingReportsServiceImpl implements OutgoingReportsService {
 		// Get Flats List for processing (only Main Flats Units. Parking is there in
 		// another loop)
 		String sqlString = "", flatNo, wing, startOgMonth, invoiceNo = "", irnNo = "", unitBillNo = "", serNumber = "",
-				parkingOwnerId, parkingNo, parkingNos, status = "", billNo = ""; // ,
+				parkingOwnerId = "", parkingNo = "", parkingNos, status = "", billNo = ""; // ,
 
 		sqlString = "SELECT distinct flat_ownerid FROM flats, outrate WHERE flat_bldgcode = outr_bldgcode AND flat_wing = outr_wing "
 				+ "AND flat_flatnum = outr_flatnum AND flat_soldyn = 'Y' AND substr(flat_flatnum,1,1) IN ('F','H','U','O') AND ('"
@@ -1209,7 +1266,7 @@ public class OutgoingReportsServiceImpl implements OutgoingReportsService {
 			flatNo = flatOwner.substring(5).trim();
 			wing = flatOwner.substring(4, 5);
 			startOgMonth = initStartOgMonth(flatOwner, bldgCode, flatNo, wing, billMonth, billType, billMode);
-
+			parkingNos = "";
 			// Fetch invoice, irnno, billnum generated for the selected bill date
 			sqlString = " FROM outbill WHERE obill_bldgcode = '" + bldgCode + "' AND obill_ownerid = '" + flatOwner
 					+ "' AND obill_month = '" + startOgMonth + "' " + "AND obill_gstyn = 'Y' AND obill_billtype = '"
@@ -1272,43 +1329,52 @@ public class OutgoingReportsServiceImpl implements OutgoingReportsService {
 //				}
 				billNo = GenericCounterIncrementLogicUtil.generateTranNoWithSite("#NSER", "OGBIL", "MUM");
 				// Calculate Infra Amount
-//				if (genInfraAmt == true) {
-				calcAmtResponseBean = calcInfraAmt(hsnCode, qtrEndDateParking, qtrEndyyyymmParking, flatOwner,
-						parkingNo, parkingOwnerId, billNo, unitBillNo, billType, billMode, billDate, billModeDesc,
-						invoiceNo, irnNo, sessionId, "");
+				if (genInfraAmt == true) {
+					calcAmtResponseBean = calcInfraAmt(hsnCode, qtrEndDateParking, qtrEndyyyymmParking, flatOwner,
+							parkingNo, parkingOwnerId, billNo, unitBillNo, billType, billMode, billDate, billModeDesc,
+							invoiceNo, irnNo, sessionId, "");
 
-//				ServiceResponseBeanBuilder calcAmtBeanBuilder = ServiceResponseBean.builder();
-//				calcAmtBeanBuilder.toString();
-//				
-//				String[] jsonObject = JSONObject.getNames(calcAmtResponseBean.getBody());
-//				JsonValue value = (JsonValue) jsonObject( "username");
+					totBillAmt = totBillAmt + initialiseTotBillAmt(calcAmtResponseBean);
 
-				JSONObject objJsonObject = new JSONObject(calcAmtResponseBean.getBody().toString());
-				System.out.println(objJsonObject.getString("status"));
-
-				if (calcAmtResponseBean.getStatusCodeValue() < 0) {
-					return ResponseEntity
-							.ok(ServiceResponseBean.builder().status(Boolean.FALSE).message(status).build());
+					if (totBillAmt < 0) {
+						return ResponseEntity
+								.ok(ServiceResponseBean.builder().status(Boolean.FALSE).message(status).build());
+					}
+//					if (calcAmtResponseBean.getBody().toString().replace("ServiceResponseBean(", "")
+//							.split(",")[2] != " status=true") {
+//						return ResponseEntity
+//								.ok(ServiceResponseBean.builder().status(Boolean.FALSE).message(status).build());
+//					} else {
+//						totBillAmt = totBillAmt + Double.parseDouble(calcAmtResponseBean.getBody().toString()
+//								.replace("ServiceResponseBean(", "").split(",")[1]);
+//					}
 				}
-//				}
+
 				// Calculate Maintenance Amount
 
-				status = calcMaintAmt(hsnCode, qtrEndDateParking, qtrEndyyyymmParking, flatOwner, parkingNo,
-						parkingOwnerId, billNo, unitBillNo, billType, billMode, billDate, billModeDesc, invoiceNo,
-						irnNo, sessionId, cGstPerc, sGstPerc, iGstPerc, "");
+				calcAmtResponseBean = calcMaintAmt(hsnCode, qtrEndDateParking, qtrEndyyyymmParking, flatOwner,
+						parkingNo, parkingOwnerId, billNo, unitBillNo, billType, billMode, billDate, billModeDesc,
+						invoiceNo, irnNo, sessionId, cGstPerc, sGstPerc, iGstPerc, "");
 
-				if (status != "SUCCESS") {
+				totBillAmt = totBillAmt + initialiseTotBillAmt(calcAmtResponseBean);
+
+				if (totBillAmt < 0) {
 					return ResponseEntity
 							.ok(ServiceResponseBean.builder().status(Boolean.FALSE).message(status).build());
 				}
+//				if (status != "SUCCESS") {
+//					return ResponseEntity.ok(ServiceResponseBean.builder().status(Boolean.FALSE).message(status).build());
+//				}
 
 				// Calculate Admin Charges Amount (Only for Normal Bill)
 				if (billType.equals("N")) {
-					status = calcAdminAmt(hsnCode, qtrEndDateParking, qtrEndyyyymmParking, flatOwner, parkingNo,
-							parkingOwnerId, billNo, unitBillNo, billType, billMode, billDate, billModeDesc, invoiceNo,
-							irnNo, sessionId, cGstPerc, sGstPerc, iGstPerc, "");
+					calcAmtResponseBean = calcAdminAmt(hsnCode, qtrEndDateParking, qtrEndyyyymmParking, flatOwner,
+							parkingNo, parkingOwnerId, billNo, unitBillNo, billType, billMode, billDate, billModeDesc,
+							invoiceNo, irnNo, sessionId, cGstPerc, sGstPerc, iGstPerc, "");
 
-					if (status != "SUCCESS") {
+					totBillAmt = totBillAmt + initialiseTotBillAmt(calcAmtResponseBean);
+
+					if (totBillAmt < 0) {
 						return ResponseEntity
 								.ok(ServiceResponseBean.builder().status(Boolean.FALSE).message(status).build());
 					}
@@ -1335,9 +1401,10 @@ public class OutgoingReportsServiceImpl implements OutgoingReportsService {
 				}
 
 				// Calculate Water
-				status = calcWaterElecNaTaxAmt("WATE", "Water Charges (Service Code " + hsnCode + ")", "outr_water",
-						hsnCode, qtrEndDateParking, qtrEndyyyymmParking, flatOwner, parkingNo, parkingOwnerId, billNo,
-						unitBillNo, billType, billMode, billDate, billModeDesc, invoiceNo, irnNo, sessionId, "");
+				status = calcWaterElecNaTaxAmt("WATE", "Water Charges (Service Code " + hsnCode + ")",
+						"Nvl(outr_water,0) ", hsnCode, qtrEndDateParking, qtrEndyyyymmParking, flatOwner, parkingNo,
+						parkingOwnerId, billNo, unitBillNo, billType, billMode, billDate, billModeDesc, invoiceNo,
+						irnNo, sessionId, "");
 
 				if (status != "SUCCESS") {
 					return ResponseEntity
@@ -1346,7 +1413,7 @@ public class OutgoingReportsServiceImpl implements OutgoingReportsService {
 
 				// Calculate Elect
 				status = calcWaterElecNaTaxAmt("ELEC", "Electricity Charges (Service Code " + hsnCode + ")",
-						"outr_elect", hsnCode, qtrEndDateParking, qtrEndyyyymmParking, flatOwner, parkingNo,
+						"Nvl(outr_elect,0)", hsnCode, qtrEndDateParking, qtrEndyyyymmParking, flatOwner, parkingNo,
 						parkingOwnerId, billNo, unitBillNo, billType, billMode, billDate, billModeDesc, invoiceNo,
 						irnNo, sessionId, "");
 
@@ -1356,9 +1423,10 @@ public class OutgoingReportsServiceImpl implements OutgoingReportsService {
 				}
 
 				// Calculate NA Tax
-				status = calcWaterElecNaTaxAmt("NATA", "NA.TAX Charges (Service Code " + hsnCode + ")", "outr_natax",
-						hsnCode, qtrEndDateParking, qtrEndyyyymmParking, flatOwner, parkingNo, parkingOwnerId, billNo,
-						unitBillNo, billType, billMode, billDate, billModeDesc, invoiceNo, irnNo, sessionId, "");
+				status = calcWaterElecNaTaxAmt("NATA", "NA.TAX Charges (Service Code " + hsnCode + ")",
+						"Nvl(outr_natax,0)", hsnCode, qtrEndDateParking, qtrEndyyyymmParking, flatOwner, parkingNo,
+						parkingOwnerId, billNo, unitBillNo, billType, billMode, billDate, billModeDesc, invoiceNo,
+						irnNo, sessionId, "");
 
 				if (status != "SUCCESS") {
 					return ResponseEntity
@@ -1368,89 +1436,94 @@ public class OutgoingReportsServiceImpl implements OutgoingReportsService {
 			}
 
 //			'--------------<<<<<<<<<  MAIN FLAT CALCULATION STARTS 
-//            ' Find Out Bill Mode/Description for that particular Flatowner
+//          ' Find Out Bill Mode/Description for that particular Flatowner
 			// Calculate Infra Amount
 			if (genInfraAmt == true) {
-//				status = calcInfraAmt(hsnCode, "", "", flatOwner, "", "", billNo, unitBillNo, billType, billMode,
-//						billDate, billModeDesc, invoiceNo, irnNo, sessionId, parkingNos);
-//
-//				if (status != "SUCCESS") {
-//					return ResponseEntity
-//							.ok(ServiceResponseBean.builder().status(Boolean.FALSE).message(status).build());
-//				}
+				calcAmtResponseBean = calcInfraAmt(hsnCode, qtrEndDate, qtrEndyyyymm, flatOwner, flatNo, flatOwner,
+						billNo, unitBillNo, billType, billMode, billDate, billModeDesc, invoiceNo, irnNo, sessionId,
+						parkingNos);
 
-				calcAmtResponseBean = calcInfraAmt(hsnCode, "", "", flatOwner, "", "", billNo, unitBillNo, billType,
-						billMode, billDate, billModeDesc, invoiceNo, irnNo, sessionId, parkingNos);
+				totBillAmt = totBillAmt + initialiseTotBillAmt(calcAmtResponseBean);
 
-				if (calcAmtResponseBean.getStatusCodeValue() < 0) {
+				if (totBillAmt < 0) {
 					return ResponseEntity
 							.ok(ServiceResponseBean.builder().status(Boolean.FALSE).message(status).build());
 				}
 			}
 			// Calculate Maintenance Amount
 
-			status = calcMaintAmt(hsnCode, "", "", flatOwner, "", "", billNo, unitBillNo, billType, billMode, billDate,
-					billModeDesc, invoiceNo, irnNo, sessionId, cGstPerc, sGstPerc, iGstPerc, parkingNos);
+			calcAmtResponseBean = calcMaintAmt(hsnCode, qtrEndDate, qtrEndyyyymm, flatOwner, flatNo, flatOwner, billNo,
+					unitBillNo, billType, billMode, billDate, billModeDesc, invoiceNo, irnNo, sessionId, cGstPerc,
+					sGstPerc, iGstPerc, parkingNos);
 
-			if (status != "SUCCESS") {
+			totBillAmt = totBillAmt + initialiseTotBillAmt(calcAmtResponseBean);
+
+			if (totBillAmt < 0) {
 				return ResponseEntity.ok(ServiceResponseBean.builder().status(Boolean.FALSE).message(status).build());
 			}
 
 			// Calculate Admin Charges Amount (Only for Normal Bill)
 			if (billType.equals("N")) {
-				status = calcAdminAmt(hsnCode, "", "", flatOwner, "", "", billNo, unitBillNo, billType, billMode,
-						billDate, billModeDesc, invoiceNo, irnNo, sessionId, cGstPerc, sGstPerc, iGstPerc, parkingNos);
+				calcAmtResponseBean = calcAdminAmt(hsnCode, qtrEndDate, qtrEndyyyymm, flatOwner, flatNo, flatOwner,
+						billNo, unitBillNo, billType, billMode, billDate, billModeDesc, invoiceNo, irnNo, sessionId,
+						cGstPerc, sGstPerc, iGstPerc, parkingNos);
 
-				if (status != "SUCCESS") {
+//				if (status != "SUCCESS") {
+//					return ResponseEntity
+//							.ok(ServiceResponseBean.builder().status(Boolean.FALSE).message(status).build());
+//				}
+				totBillAmt = totBillAmt + initialiseTotBillAmt(calcAmtResponseBean);
+
+				if (totBillAmt < 0) {
 					return ResponseEntity
 							.ok(ServiceResponseBean.builder().status(Boolean.FALSE).message(status).build());
 				}
 			}
 
 			// Calculate Arrears
-			status = calcArrearsAmt(hsnCode, "", "", flatOwner, "", "", billNo, unitBillNo, billType, billMode,
-					billDate, billModeDesc, invoiceNo, irnNo, sessionId, parkingNos);
+			status = calcArrearsAmt(hsnCode, qtrEndDate, qtrEndyyyymm, flatOwner, flatNo, flatOwner, billNo, unitBillNo,
+					billType, billMode, billDate, billModeDesc, invoiceNo, irnNo, sessionId, parkingNos);
 
 			if (status != "SUCCESS") {
 				return ResponseEntity.ok(ServiceResponseBean.builder().status(Boolean.FALSE).message(status).build());
 			}
 
 			// Calculate Interest
-			status = calcInterestAmt(hsnCode, "", "", flatOwner, "", "", billNo, unitBillNo, billType, billMode,
-					billDate, billModeDesc, invoiceNo, irnNo, sessionId, parkingNos);
+			status = calcInterestAmt(hsnCode, qtrEndDate, qtrEndyyyymm, flatOwner, flatNo, flatOwner, billNo,
+					unitBillNo, billType, billMode, billDate, billModeDesc, invoiceNo, irnNo, sessionId, parkingNos);
 
 			if (status != "SUCCESS") {
 				return ResponseEntity.ok(ServiceResponseBean.builder().status(Boolean.FALSE).message(status).build());
 			}
 
 			// Calculate Water
-			status = calcWaterElecNaTaxAmt("WATE", "Water Charges (Service Code " + hsnCode + ")", "outr_water",
-					hsnCode, "", "", flatOwner, "", "", billNo, unitBillNo, billType, billMode, billDate, billModeDesc,
-					invoiceNo, irnNo, sessionId, parkingNos);
+			status = calcWaterElecNaTaxAmt("WATE", "Water Charges (Service Code " + hsnCode + ")", "Nvl(outr_water,0) ",
+					hsnCode, qtrEndDate, qtrEndyyyymm, flatOwner, flatNo, flatOwner, billNo, unitBillNo, billType,
+					billMode, billDate, billModeDesc, invoiceNo, irnNo, sessionId, parkingNos);
 
 			if (status != "SUCCESS") {
 				return ResponseEntity.ok(ServiceResponseBean.builder().status(Boolean.FALSE).message(status).build());
 			}
 
 			// Calculate Elect
-			status = calcWaterElecNaTaxAmt("ELEC", "Electricity Charges (Service Code " + hsnCode + ")", "outr_elect",
-					hsnCode, "", "", flatOwner, "", "", billNo, unitBillNo, billType, billMode, billDate, billModeDesc,
-					invoiceNo, irnNo, sessionId, parkingNos);
+			status = calcWaterElecNaTaxAmt("ELEC", "Electricity Charges (Service Code " + hsnCode + ")",
+					"Nvl(outr_elect,0)", hsnCode, qtrEndDate, qtrEndyyyymm, flatOwner, flatNo, flatOwner, billNo,
+					unitBillNo, billType, billMode, billDate, billModeDesc, invoiceNo, irnNo, sessionId, parkingNos);
 
 			if (status != "SUCCESS") {
 				return ResponseEntity.ok(ServiceResponseBean.builder().status(Boolean.FALSE).message(status).build());
 			}
 
 			// Calculate NA Tax
-			status = calcWaterElecNaTaxAmt("NATA", "NA.TAX Charges (Service Code " + hsnCode + ")", "outr_natax",
-					hsnCode, "", "", flatOwner, "", "", billNo, unitBillNo, billType, billMode, billDate, billModeDesc,
-					invoiceNo, irnNo, sessionId, parkingNos);
+			status = calcWaterElecNaTaxAmt("NATA", "NA.TAX Charges (Service Code " + hsnCode + ")", "Nvl(outr_natax,0)",
+					hsnCode, qtrEndDate, qtrEndyyyymm, flatOwner, flatNo, flatOwner, billNo, unitBillNo, billType,
+					billMode, billDate, billModeDesc, invoiceNo, irnNo, sessionId, parkingNos);
 
 			if (status != "SUCCESS") {
 				return ResponseEntity.ok(ServiceResponseBean.builder().status(Boolean.FALSE).message(status).build());
 			}
 
-//			'UPDATES LIST OF PARKING FOR A UNIT
+			// UPDATES LIST OF PARKING FOR A UNIT
 
 			if (parkingNos != "") {
 				parkingNos = parkingNos.substring(2);
@@ -1459,13 +1532,34 @@ public class OutgoingReportsServiceImpl implements OutgoingReportsService {
 
 		}
 
-		logger.info("sess :: {} ", sessionId);
+//	}
+
+//	logger.info("sess :: {} ",sessionId);
+
 		return ResponseEntity.ok(ServiceResponseBean.builder().status(Boolean.TRUE).data(sessionId)
 				.message("Added successfully").build());
+
 //		} else {
 //			return ResponseEntity
 //					.ok(ServiceResponseBean.builder().status(Boolean.FALSE).message("No data found.").build());
 //
+	}
+
+	public Double initialiseTotBillAmt(ResponseEntity calcAmtResponseBean) {
+		Double chargeCodeAmt = 0.0;
+		System.out.println("Status='"
+				+ calcAmtResponseBean.getBody().toString().replace("ServiceResponseBean(", "").split(",")[2].trim()
+				+ "'");
+
+		if (calcAmtResponseBean.getBody().toString().replace("ServiceResponseBean(", "").split(",")[2].trim()
+				.equals("status=true")) {
+			chargeCodeAmt = Double.parseDouble(
+					calcAmtResponseBean.getBody().toString().replace("ServiceResponseBean(", "").split(",")[0]
+							.substring(5));
+		} else {
+			return -1.0;
+		}
+		return chargeCodeAmt;
 	}
 
 	@Override

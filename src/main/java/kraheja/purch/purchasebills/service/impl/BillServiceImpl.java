@@ -4,6 +4,7 @@ package kraheja.purch.purchasebills.service.impl;
 import java.lang.invoke.MethodHandles;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.RoundingMode;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.sql.Timestamp;
@@ -522,11 +523,32 @@ public class BillServiceImpl implements BillService {
 		//Already fetched material entity above 
 		if(Objects.nonNull(materialEntity)) {
 			List<ActrandBean> actrandList = new ArrayList<>();
+			//In bove select was given 12.4565652239 issue
 			Double sumOfTaxableAmt = pbillhRequestBean.getPbillvatRequestBean().parallelStream().mapToDouble(data -> data.getTaxableamt() + data.getFotoamt()).sum();
+			// start of multiple decimals problem issue in actrand  vicky 20240301
+			BigDecimal bdsumOfTaxableAmt = new BigDecimal(sumOfTaxableAmt).setScale(2, RoundingMode.HALF_UP);  
+			sumOfTaxableAmt = bdsumOfTaxableAmt.doubleValue();
+			// 	end of multiple decimals problem issue in actrand  vicky 20240301			
 			Double sumOfCgstAmt = pbillhRequestBean.getPbillvatRequestBean().parallelStream().mapToDouble(PbillvatRequestBean::getCgstamt).sum();
+			// start of multiple decimals problem issue in actrand  vicky 20240301
+			BigDecimal bdsumOfCgstAmt = new BigDecimal(sumOfCgstAmt).setScale(2, RoundingMode.HALF_UP);  
+			sumOfCgstAmt = bdsumOfCgstAmt.doubleValue();
+			// 	end of multiple decimals problem issue in actrand  vicky 20240301			
 			Double sumOfSgstAmt = pbillhRequestBean.getPbillvatRequestBean().parallelStream().mapToDouble(PbillvatRequestBean::getSgstamt).sum();
+			// start of multiple decimals problem issue in actrand  vicky 20240301
+			BigDecimal bdsumOfSgstAmt = new BigDecimal(sumOfSgstAmt).setScale(2, RoundingMode.HALF_UP);  
+			sumOfSgstAmt = bdsumOfSgstAmt.doubleValue();
+			// end of multiple decimals problem issue in actrand  vicky 20240301			
 			Double sumOfIgstAmt = pbillhRequestBean.getPbillvatRequestBean().parallelStream().mapToDouble(PbillvatRequestBean::getIgstamt).sum();
+			// start of multiple decimals problem issue in actrand  vicky 20240301
+			BigDecimal bdsumOfIgstAmt = new BigDecimal(sumOfIgstAmt).setScale(2, RoundingMode.HALF_UP);  
+			sumOfIgstAmt = bdsumOfIgstAmt.doubleValue();
+			// end of multiple decimals problem issue in actrand  vicky 20240301			
 			Double sumOfUgstAmt = pbillhRequestBean.getPbillvatRequestBean().parallelStream().mapToDouble(PbillvatRequestBean::getUgstamt).sum();
+			// start of multiple decimals problem issue in actrand  vicky 20240301
+			BigDecimal bdsumOfUgstAmt = new BigDecimal(sumOfUgstAmt).setScale(2, RoundingMode.HALF_UP);  
+			sumOfUgstAmt = bdsumOfUgstAmt.doubleValue();
+			// end of multiple decimals problem issue in actrand  vicky 20240301			
 			Building buildingEntity = this.buildingRepository.findByBuildingCK_BldgCode(pbillhRequestBean.getBldgcode().trim());
 			if(Objects.nonNull(buildingEntity)) {
 				Integer bunumCounter = BigInteger.ZERO.intValue();

@@ -5,13 +5,13 @@ import org.springframework.stereotype.Service;
 
 import kraheja.enggsys.managementreport.VendorCountService.VendorCountService;
 import kraheja.enggsys.managementreport.bean.response.GenericResponse;
-import kraheja.enggsys.repository.VendorCountRepository;
+import kraheja.enggsys.repository.MatcertlnvendorhdrRepository;
 
 @Service
 public class VendorCountServiceImpl implements VendorCountService {
 
     @Autowired
-    private VendorCountRepository vendorCountRepository;
+    private MatcertlnvendorhdrRepository vendorCountRepository;
 
     @Override
     public GenericResponse<String> fetchVendorCountByLogicNoteNum(String logicNoteNum) {

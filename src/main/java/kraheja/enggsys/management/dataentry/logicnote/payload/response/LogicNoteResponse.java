@@ -1,5 +1,8 @@
 package kraheja.enggsys.management.dataentry.logicnote.payload.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 import kraheja.enggsys.management.dataentry.logicnote.payload.request.NarrationAreaRequest;
 import kraheja.enggsys.management.dataentry.logicnote.payload.request.WorkCodeDetailRequest;
 import kraheja.payload.GenericResponse;
@@ -16,7 +19,10 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
+@JsonInclude(Include.NON_DEFAULT)
 public class LogicNoteResponse extends GenericResponse{
+
+	private String tranType;
 	private NarrationAreaRequest logicNoteHeaderRequest;
 	private WorkCodeDetailRequest detailRequest;
 }

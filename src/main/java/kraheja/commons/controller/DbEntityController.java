@@ -11,17 +11,23 @@ import kraheja.commons.service.DbEntityService;
 @RestController
 @RequestMapping("/entity")
 public class DbEntityController {
-	
+
 	@Autowired
 	private DbEntityService dbEntityService;
-	
+
 	@GetMapping("/fetch-by-class")
-	public ResponseEntity<?> fetchByClass(String clazz){
-		return this.dbEntityService.fetchByClass(clazz);	
+	public ResponseEntity<?> fetchByClass(String clazz) {
+		return this.dbEntityService.fetchByClass(clazz);
 	}
 
 	@GetMapping("/fetch-num1-by-class-and-id")
-	public ResponseEntity<?> fetchNum1ByClassAndId(String clazz, String id){
-		return this.dbEntityService.fetchNum1ByClassAndId(clazz, id);	
+	public ResponseEntity<?> fetchNum1ByClassAndId(String clazz, String id) {
+		return this.dbEntityService.fetchNum1ByClassAndId(clazz, id);
+	}
+
+	// 21.12.23 RS
+	@GetMapping("/fetch-char1-by-class-and-id")
+	public ResponseEntity<?> fetchChar1ByClassAndId(String clazz, String id, String extraWhereClause) {
+		return this.dbEntityService.fetchChar1ByClassAndId(clazz, id, extraWhereClause);
 	}
 }
