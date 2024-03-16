@@ -78,7 +78,7 @@ public class AuthorizationApi {
 		return ResponseEntity.ok(response);
 	}
 	@GetMapping("/retrieve-last-lc-authorization")
-	public ResponseEntity<AuthorizationResponse> retrieveLastCertficateNo(@RequestParam String supplier,
+	public ResponseEntity<AuthorizationResponse> retrieveLastAuthNo(@RequestParam String supplier,
 			@RequestParam String building, @RequestParam String authType) {
 		String lastauthNumber = authorizationService.fetchlastauthNumber(supplier,building,authType);
 		AuthorizationResponse response = AuthorizationResponse.builder().authNum(lastauthNumber).build();

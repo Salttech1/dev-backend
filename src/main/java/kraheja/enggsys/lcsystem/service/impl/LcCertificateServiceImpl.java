@@ -85,16 +85,18 @@ public class LcCertificateServiceImpl implements LcCertificateService {
 
 		return contractResponse;
 	}
-	
-	
-	public ContractResponse retrieveContract(String recId,String lcerCertnum) {
-		
+
+	public ContractResponse retrieveContract(String recId, String lcerCertnum) {
+
 		Lccert lccert = lccertRepository.findByLccertCK_LcerCertnum(lcerCertnum);
-		
-		Tuple tuple = lccertRepository.retrieveHeaderDetailsForLCCert(lcerCertnum,lcerCertnum);
-		Double pCertAmt = (tuple.get(6, BigDecimal.class) != null) ? tuple.get(6, BigDecimal.class).doubleValue() : 0.00;
-		Double totalAmt = (tuple.get(7, BigDecimal.class) != null) ? tuple.get(7, BigDecimal.class).doubleValue() : 0.00;
-		Double totTwoptc = (tuple.get(8, BigDecimal.class) != null) ? tuple.get(8, BigDecimal.class).doubleValue() : 0.00;
+
+		Tuple tuple = lccertRepository.retrieveHeaderDetailsForLCCert(lcerCertnum, lcerCertnum);
+		Double pCertAmt = (tuple.get(6, BigDecimal.class) != null) ? tuple.get(6, BigDecimal.class).doubleValue()
+				: 0.00;
+		Double totalAmt = (tuple.get(7, BigDecimal.class) != null) ? tuple.get(7, BigDecimal.class).doubleValue()
+				: 0.00;
+		Double totTwoptc = (tuple.get(8, BigDecimal.class) != null) ? tuple.get(8, BigDecimal.class).doubleValue()
+				: 0.00;
 //		String pCertNum = (tuple.get(0, String.class) != null) ? tuple.get(0, String.class) : null;
 //		String pCertType = (tuple.get(1, String.class) != null) ? tuple.get(1, String.class) : null;
 //		Integer pCertRunSer = (tuple.get(2, BigDecimal.class) != null) ? tuple.get(2, BigDecimal.class).intValue()
@@ -118,15 +120,16 @@ public class LcCertificateServiceImpl implements LcCertificateService {
 //		String partyCode = (tuple.get(15, String.class) != null) ? tuple.get(15, String.class) : "";
 //		String partyType = (tuple.get(16, String.class) != null) ? tuple.get(16, String.class) : "";
 
-		ContractResponse contractResponse = ContractResponse.builder().prvCertNum(lcerCertnum).prvCertType(lccert.getLcerCerttype())
-				.prvRunSer(lccert.getLcerRunser()).prvCertDate(lccert.getLcerCertdate()).proprietor(lccert.getLcerProp())
-				.company(lccert.getLcerCoy()).project(lccert.getLcerProject())
-				.proprty(lccert.getLcerProperty()).building(lccert.getLcerBldgcode())
+		ContractResponse contractResponse = ContractResponse.builder().prvCertNum(lcerCertnum)
+				.prvCertType(lccert.getLcerCerttype()).prvRunSer(lccert.getLcerRunser())
+				.prvCertDate(lccert.getLcerCertdate()).proprietor(lccert.getLcerProp()).company(lccert.getLcerCoy())
+				.project(lccert.getLcerProject()).proprty(lccert.getLcerProperty()).building(lccert.getLcerBldgcode())
 				.workCode(lccert.getLcerWorkcode()).partyCode(lccert.getLcerPartycode())
 				.partyType(lccert.getLcerPartytype()).prvCertAmt(pCertAmt).totalAmtCertified(totalAmt)
-				.prvTotTwoptc(totTwoptc).durationFrom(lccert.getLcerPrv_Durfrom()).durationUpto(lccert.getLcerPrv_Durto()).build();
+				.prvTotTwoptc(totTwoptc).durationFrom(lccert.getLcerPrv_Durfrom())
+				.durationUpto(lccert.getLcerPrv_Durto()).build();
 //		log.debug("contractResponse obtain: {}", contractResponse);
-		
+
 		return contractResponse;
 	}
 
@@ -138,10 +141,15 @@ public class LcCertificateServiceImpl implements LcCertificateService {
 		if (Objects.isNull(lccert)) {
 			return LcCertificateRequest.builder().result(Result.FAILED).responseCode(ApiResponseCode.FAILED)
 					.message(ApiResponseMessage.RECORD_NOT_FOUNDED).build();
+		} else if (lccert.getLcerCertstatus().equals("5") || lccert.getLcerCertstatus().equals("7")) {
+
+			return LcCertificateRequest.builder().result(Result.FAILED).responseCode(ApiResponseCode.FAILED)
+					.message(ApiResponseMessage.LC_CERTIFICATE_IS_ALREADY_PASSED).build();
+
 		} else {
 			recId = lccert.getLcerContract().trim();
 			certType = lccert.getLcerCerttype().trim();
-			ContractResponse contractResponse = this.retrieveContract(recId,lcerCertnum);
+			ContractResponse contractResponse = this.retrieveContract(recId, lcerCertnum);
 			log.debug("contractResponse: {}", contractResponse);
 
 			List<Lcauthboe> lcauthboe = lcauthboeRepository.findLcauthboeByLcauthboeCKLcabAuthnum(lcerCertnum);
@@ -155,35 +163,19 @@ public class LcCertificateServiceImpl implements LcCertificateService {
 						.shipDate(authboe.getLcabLastshipmentdate()).docsRecdDate(authboe.getLcabShipdocrecddate())
 						.boeNo(authboe.getLcabBoeno()).boeDate(authboe.getLcabBoedate()).build());
 			}
-			return LcCertificateRequest.builder().result(Result.SUCCESS)
-					.responseCode(ApiResponseCode.SUCCESS)
-					.message(ApiResponseMessage.DATA_FETCH_SUCCESSFULLY)
-					.tranType("E")
-					.preparedBy(lccert.getLcerOriginator())
-					.certificateDate(lccert.getLcerCertdate())
-					.noOfDays(lccert.getLcerNoofdays())
-					.durationFrom(lccert.getLcerDurfrom())
-					.durationUpto(lccert.getLcerDurto())
-					.payMode(lccert.getLcerPaymode())
-					.quantity(lccert.getLcerQty())
-					.uom(lccert.getLcerUom())
-					.currency(lccert.getLcerCurrency())
-					.amount(lccert.getLcerCertamount())
+			return LcCertificateRequest.builder().result(Result.SUCCESS).responseCode(ApiResponseCode.SUCCESS)
+					.message(ApiResponseMessage.DATA_FETCH_SUCCESSFULLY).tranType("E")
+					.preparedBy(lccert.getLcerOriginator()).certificateDate(lccert.getLcerCertdate())
+					.noOfDays(lccert.getLcerNoofdays()).durationFrom(lccert.getLcerDurfrom())
+					.durationUpto(lccert.getLcerDurto()).payMode(lccert.getLcerPaymode()).quantity(lccert.getLcerQty())
+					.uom(lccert.getLcerUom()).currency(lccert.getLcerCurrency()).amount(lccert.getLcerCertamount())
 					.bankCharges((lccert.getLcerBankcharges() != null) ? lccert.getLcerBankcharges() : null)
-					.payAmount(lccert.getLcerPayamount())
-					.documentNo(lccert.getLcerDocumentno())
-					.documentDate(lccert.getLcerDocumentdate())
-					.masterCertificateNo(lccert.getLcerMastercertno())
-					.masterCertificateYN(lccert.getLcerMasterlcyn())
-					.category(lccert.getLcerCategory())
-					.lcNo(lccert.getLcerLcno())
-					.fileNo(lccert.getLcerFileno())
-					.remarks(lccert.getLcerRemarks())
-					.purpose(lccert.getLcerPurpose())
-					.revNum(lccert.getLcerCertrevnum())
-					.lcDetailsList(lcAuthboeList)
-					.contractRequest(contractResponse)
-					.build();
+					.payAmount(lccert.getLcerPayamount()).documentNo(lccert.getLcerDocumentno())
+					.documentDate(lccert.getLcerDocumentdate()).masterCertificateNo(lccert.getLcerMastercertno())
+					.masterCertificateYN(lccert.getLcerMasterlcyn()).category(lccert.getLcerCategory())
+					.lcNo(lccert.getLcerLcno()).fileNo(lccert.getLcerFileno()).remarks(lccert.getLcerRemarks())
+					.purpose(lccert.getLcerPurpose()).revNum(lccert.getLcerCertrevnum()).lcDetailsList(lcAuthboeList)
+					.contractRequest(contractResponse).build();
 		}
 	}
 
@@ -208,17 +200,17 @@ public class LcCertificateServiceImpl implements LcCertificateService {
 			if (request.getTranType().equals("N")) {
 				lcerCertnum = GenericCounterIncrementLogicUtil.generateTranNo("#TSER", "LCCER");
 				log.debug("created new certificate number: {}", lcerCertnum);
-				
+
 				request.setRevNum(0);
 				runser = contractResponse.getPrvRunSer() + 1;
-				
+
 			} else {
 				Lccert lccert = lccertRepository.findLccertByLccertCKLcerCertnum(lcerCertnum);
 				log.debug("LC Certificates: {}", lccert);
 
 				if (Objects.nonNull(lccert)) {
 					request.setRevNum(lccert.getLcerCertrevnum() + 1);
-					
+
 					Double lastTotalAmt = contractResponse.getTotalAmtCertified() - lccert.getLcerCertamount();
 					contractResponse.setTotalAmtCertified(lastTotalAmt);
 					contractResponse.setPrvCertNum(lccert.getLcerPrv_Certnum());
@@ -238,17 +230,18 @@ public class LcCertificateServiceImpl implements LcCertificateService {
 
 			List<LcDetails> lcDetailsList = request.getLcDetailsList();
 			log.debug("lcDetailsList : {}", lcDetailsList);
-			
+
 			this.saveIntoLcauthboe(lcDetailsList, contractResponse, lcerCertnum, userId, siteName,
 					request.getDocumentNo(), request.getDocumentDate());
-			this.saveIntoLcCert(request, contractResponse, recId, certType, lcerCertnum, userId, siteName, runser, lcDetailsList.get(lcDetailsList.size()-1).getLcNo());
+			this.saveIntoLcCert(request, contractResponse, recId, certType, lcerCertnum, userId, siteName, runser,
+					lcDetailsList.get(lcDetailsList.size() - 1).getLcNo());
 
 		} catch (Exception e) {
 			log.debug("exception occored into: {}", e.getMessage());
 			return LcCertificateResponse.builder().result(Result.FAILED).responseCode(ApiResponseCode.FAILED)
 					.message(e.getMessage()).build();
 		}
-		
+
 		if (request.getTranType().equals("E")) {
 			return LcCertificateResponse.builder().result(Result.SUCCESS).responseCode(ApiResponseCode.SUCCESS)
 					.lccertNumber(lcerCertnum).message(ApiResponseMessage.LC_CERTIFICATE_SUCCESSFULLY_UPDATED).build();
@@ -262,36 +255,25 @@ public class LcCertificateServiceImpl implements LcCertificateService {
 		if (Objects.nonNull(lcDetailsList)) {
 			int serialNo = 1;
 			for (LcDetails lcDetails : lcDetailsList) {
-				LcauthboeCK lcauthboeCK = LcauthboeCK.builder()
-						.lcabSrno(serialNo)
-						.lcabAuthnum(lcerCertnum)
-						.build();
+				LcauthboeCK lcauthboeCK = LcauthboeCK.builder().lcabSrno(serialNo).lcabAuthnum(lcerCertnum).build();
 				log.debug("lcauthboeCK obtaint: {}", lcauthboeCK);
 
 				if (lcDetails.getDutyFreeNo() != null) {
-					
+
 				}
-				
-				Lcauthboe lcauthboe = Lcauthboe.builder()
-						.lcauthboeCK(lcauthboeCK)
-						.lcabBldgcode(contractResponse.getBuilding())
-						.lcabProject(contractResponse.getProject())
+
+				Lcauthboe lcauthboe = Lcauthboe.builder().lcauthboeCK(lcauthboeCK)
+						.lcabBldgcode(contractResponse.getBuilding()).lcabProject(contractResponse.getProject())
 						.lcabCoy(contractResponse.getCompany())
 						.lcabEpcgno(lcDetails.getDutyFreeNo() != null ? "DUTYFREE" : lcDetails.getEpcgNo())
 //						.lcabEpcgno("DUTYFREE")
-						.lcabDutyfreeno(lcDetails.getDutyFreeNo())
-						.lcabLcno(lcDetails.getLcNo())
-						.lcabInspectiondate(lcDetails.getInspectionDate())
-						.lcabLastshipmentdate(lcDetails.getShipDate())
-						.lcabShipdocrecddate(lcDetails.getDocsRecdDate())
-						.lcabBoeno(lcDetails.getBoeNo())
+						.lcabDutyfreeno(lcDetails.getDutyFreeNo()).lcabLcno(lcDetails.getLcNo())
+						.lcabInspectiondate(lcDetails.getInspectionDate()).lcabLastshipmentdate(lcDetails.getShipDate())
+						.lcabShipdocrecddate(lcDetails.getDocsRecdDate()).lcabBoeno(lcDetails.getBoeNo())
 						.lcabBoedate(lcDetails.getBoeDate())
 						.lcabPendingitems(lcDetails.getPendingItems() != null ? lcDetails.getPendingItems() : 0)
-						.lcabToday(LocalDateTime.now()).lcabDocumentno(docNum)
-						.lcabDocumentdate(docDate)
-						.lcabUserid(userId).lcabSite(siteName)
-						.lcabOrigsite(siteName)
-						.build();
+						.lcabToday(LocalDateTime.now()).lcabDocumentno(docNum).lcabDocumentdate(docDate)
+						.lcabUserid(userId).lcabSite(siteName).lcabOrigsite(siteName).build();
 
 				log.debug("Lcauthboe entity ready to save: {}", lcauthboe);
 				lcauthboeRepository.save(lcauthboe);
@@ -303,67 +285,39 @@ public class LcCertificateServiceImpl implements LcCertificateService {
 
 	private void saveIntoLcCert(LcCertificateRequest request, ContractResponse contractResponse, String recId,
 			String certType, String lcerCertnum, String userId, String siteName, Integer runser, String lcNo) {
-		LccertCK lccertCK = LccertCK.builder()
-				.lcerCertnum(lcerCertnum)
-				.build();
-		Lccert lccert = Lccert.builder()
-				.lccertCK(lccertCK)
-				.lcerCertdate(request.getCertificateDate())
-				.lcerCertrevnum(request.getRevNum())
-				.lcerRunser(runser)
-				.lcerContract(recId)
-				.lcerCerttype(certType)
-				.lcerOriginator(request.getPreparedBy())
-				.lcerPaymode(request.getPayMode())
+		LccertCK lccertCK = LccertCK.builder().lcerCertnum(lcerCertnum).build();
+		Lccert lccert = Lccert.builder().lccertCK(lccertCK).lcerCertdate(request.getCertificateDate())
+				.lcerCertrevnum(request.getRevNum()).lcerRunser(runser).lcerContract(recId).lcerCerttype(certType)
+				.lcerOriginator(request.getPreparedBy()).lcerPaymode(request.getPayMode())
 //				.lcerPrinted(null)
 //				.lcerPrintedon(null)
 //				.lcerPassedon(null)
-				.lcerCertstatus("1")
-				.lcerProp(contractResponse.getProprietor())
-				.lcerCoy(contractResponse.getCompany()) 
-				.lcerPaycoy(contractResponse.getCompany())
-				.lcerProject(contractResponse.getProject())
-				.lcerProperty(contractResponse.getProprty())
-				.lcerBldgcode(contractResponse.getBuilding())
-				.lcerWorkcode(contractResponse.getWorkCode())
-				.lcerPartytype(contractResponse.getPartyType())
-				.lcerPartycode(contractResponse.getPartyCode())
-				.lcerDurfrom(request.getDurationFrom())
-				.lcerDurto(request.getDurationUpto())
-				.lcerNoofdays(request.getNoOfDays())
-				.lcerCurrency(request.getCurrency())
-				.lcerCertamount(request.getAmount())
-				.lcerBankcharges(request.getBankCharges())
-				.lcerPayamount(request.getPayAmount())
-				.lcerDocumentno(request.getDocumentNo())
-				.lcerDocumentdate(request.getDocumentDate())
+				.lcerCertstatus("1").lcerProp(contractResponse.getProprietor()).lcerCoy(contractResponse.getCompany())
+				.lcerPaycoy(contractResponse.getCompany()).lcerProject(contractResponse.getProject())
+				.lcerProperty(contractResponse.getProprty()).lcerBldgcode(contractResponse.getBuilding())
+				.lcerWorkcode(contractResponse.getWorkCode()).lcerPartytype(contractResponse.getPartyType())
+				.lcerPartycode(contractResponse.getPartyCode()).lcerDurfrom(request.getDurationFrom())
+				.lcerDurto(request.getDurationUpto()).lcerNoofdays(request.getNoOfDays())
+				.lcerCurrency(request.getCurrency()).lcerCertamount(request.getAmount())
+				.lcerBankcharges(request.getBankCharges()).lcerPayamount(request.getPayAmount())
+				.lcerDocumentno(request.getDocumentNo()).lcerDocumentdate(request.getDocumentDate())
 //				.lcerPayref(null)
 //				.lcerPaydate(null)
 //				.lcerTranser(null)
 //				.lcerEnggcertno(null)
-				.lcerRemarks(request.getRemarks())
-				.lcerPrv_Certnum(contractResponse.getPrvCertNum())
-				.lcerPrv_Certdate(contractResponse.getPrvCertDate())
-				.lcerPrv_Certrunser(contractResponse.getPrvRunSer())
-				.lcerPrv_Certtype(contractResponse.getPrvCertType())
-				.lcerPrv_Certamt(contractResponse.getPrvCertAmt())
-				.lcerPrv_Durfrom(contractResponse.getDurationFrom())
-				.lcerPrv_Durto(contractResponse.getDurationUpto())
+				.lcerRemarks(request.getRemarks()).lcerPrv_Certnum(contractResponse.getPrvCertNum())
+				.lcerPrv_Certdate(contractResponse.getPrvCertDate()).lcerPrv_Certrunser(contractResponse.getPrvRunSer())
+				.lcerPrv_Certtype(contractResponse.getPrvCertType()).lcerPrv_Certamt(contractResponse.getPrvCertAmt())
+				.lcerPrv_Durfrom(contractResponse.getDurationFrom()).lcerPrv_Durto(contractResponse.getDurationUpto())
 				.lcerTot_Payment(contractResponse.getTotalAmtCertified() + request.getAmount())
-				.lcerTot_Twoptc(contractResponse.getPrvTotTwoptc())
-				.lcerOrigsite(siteName).lcerSite(siteName)
-				.lcerUserid(userId).lcerToday(LocalDateTime.now())
-				.lcerQty(request.getQuantity())
-				.lcerUom(request.getUom())
-				.lcerCategory(request.getCategory())
-				.lcerFileno(request.getFileNo())
+				.lcerTot_Twoptc(contractResponse.getPrvTotTwoptc()).lcerOrigsite(siteName).lcerSite(siteName)
+				.lcerUserid(userId).lcerToday(LocalDateTime.now()).lcerQty(request.getQuantity())
+				.lcerUom(request.getUom()).lcerCategory(request.getCategory()).lcerFileno(request.getFileNo())
 //				.lcerEpcg_Dutyfree(null)
 //				.lcerLicnum(null)
 //				.lcerLicdate(null)
-				.lcerLcno(lcNo)
-				.lcerMastercertno(request.getMasterCertificateNo())
-				.lcerMasterlcyn(request.getMasterCertificateYN())
-				.lcerPurpose(request.getPurpose())
+				.lcerLcno(lcNo).lcerMastercertno(request.getMasterCertificateNo())
+				.lcerMasterlcyn(request.getMasterCertificateYN()).lcerPurpose(request.getPurpose())
 //				.lcerEpcgno(null)
 //				.lcerEpcgdate(null)
 //				.lcerInspectiondate(null)
@@ -378,6 +332,7 @@ public class LcCertificateServiceImpl implements LcCertificateService {
 		log.debug("Lccert entity ready to save: {}", lccert);
 		lccertRepository.save(lccert);
 	}
+
 	@Override
 	public String fetchLastCertficateNo(String recId) {
 		return lccertRepository.fetchLastCertNumber(recId.trim());

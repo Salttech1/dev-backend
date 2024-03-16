@@ -47,6 +47,7 @@ import kraheja.payroll.bean.EmployeeDetailsRequestBean;
 import kraheja.payroll.bean.EmployeeDetailsResponseBean;
 import kraheja.payroll.bean.EmployeeSalDetailsResponseBean;
 import kraheja.payroll.bean.EmpsalarypackageEarnDedBean;
+import kraheja.payroll.bean.request.EmpleaveinfoRequestBean;
 import kraheja.payroll.bean.response.EmpleaveinfoResponseBean;
 import kraheja.payroll.entity.Empassetinfo;
 import kraheja.payroll.entity.Empeducation;
@@ -1024,7 +1025,27 @@ public class EmployeeDetailsEntryEditServiceImpl implements EmployeeDetailsEntry
 //		set empexperience
 		this.employeeDetailsEntryEditRepository.deleteEmpexperience(empcode);
 		this.empexperienceRepository.saveAll(EmpexperienceEntityPojoMapper.addEmpexperiencePojoEntityMapper.apply(new Object[] {employeeDetailsRequestBean.getEmpexperienceRequestBean(),empcode,"MAINSCRMOD"}));
-//		Package, scheme, leave and party work pending
+//		set empleaveinfo
+		if (Objects.nonNull(employeeDetailsRequestBean.getEmpleaveinfoRequestBean())){
+			List<EmpleaveinfoRequestBean> empleaveinfoRequestBean = employeeDetailsRequestBean.getEmpleaveinfoRequestBean();
+			logger.info("EmpleaveinfoRequestBean :: {}", empleaveinfoRequestBean);
+			Integer counter = 0;
+			String lEmpcode; 
+			String lLeavecode; 
+			String lAcyear;
+			if (CollectionUtils.isNotEmpty(empleaveinfoRequestBean))
+				for (EmpleaveinfoRequestBean empleaveinfo : empleaveinfoRequestBean) {
+					if (empleaveinfoRequestBean.get(counter).getIsUpdate().equals(true)) {
+						lEmpcode = empleaveinfoRequestBean.get(counter).getEmpcode(); 
+						lLeavecode = empleaveinfoRequestBean.get(counter).getLeavecode(); 
+						lAcyear = empleaveinfoRequestBean.get(counter).getAcyear();						
+						Empleaveinfo lempleaveinfo = this.empleaveinfoRepository.findByEmpleaveinfoCK_ElinEmpcodeAndEmpleaveinfoCK_ElinLeavecodeAndEmpleaveinfoCK_ElinAcyear(lEmpcode, lLeavecode, lAcyear);
+						this.empleaveinfoRepository.save(EmpleaveinfoEntityPojoMapper.updateEmpleaveinfoEntityPojoMapper.apply(lempleaveinfo,empleaveinfo))	;
+						}
+					counter++;
+				}
+		}
+//		Package, scheme, and party work pending
 		return ResponseEntity.ok(ServiceResponseBean.builder().status(Boolean.TRUE).message(empcode.concat(" Modified Successfully.")).build());
 	}
 }

@@ -1,6 +1,7 @@
 package kraheja.enggsys.lcsystem.service.impl;
 
 import java.util.List;
+import java.util.Objects;
 
 import javax.transaction.Transactional;
 
@@ -53,7 +54,13 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 		
 		List<Lcauthboe> lcauthboe = lcauthboeRepository.findLcauthboeByLcauthboeCKLcabAuthnum(authnum);
 		log.debug("LC Auth Boe: {}", lcauthboe);
-		
+		if (Objects.nonNull(lcauth) && (lcauth.getLcahAuthstatus().equals("5") || lcauth.getLcahAuthstatus().equals("7"))) {
+			return AuthorizationRequest.builder()
+					.result(Result.FAILED)
+					.responseCode(ApiResponseCode.FAILED)
+					.message(ApiResponseMessage.LC_AUTHORISATION_IS_ALREADY_PASSED)
+					.build();
+		}
 		return authorizationMapper.lcauthRequestMap(lcauth, lcauthboe);
 	}
 

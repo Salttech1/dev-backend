@@ -1,6 +1,5 @@
 package kraheja.payroll.computationofsalary.service.impl;
 
-import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -13,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import kraheja.commons.bean.response.ServiceResponseBean;
-import kraheja.payroll.bean.SalaryInitCheckInputBean;
 import kraheja.payroll.bean.SalaryPaymentDateBean;
 import kraheja.payroll.computationofsalary.service.SalaryPaymentDateService;
 import kraheja.payroll.repository.SalaryPaymentDateRepository;
@@ -35,7 +33,8 @@ public class SalaryPaymentDateServiceImpl implements SalaryPaymentDateService {
 			                t.get(0, String.class),
 			                t.get(1, String.class),
 			                t.get(2, Double.class),
-			                t.get(3, String.class));
+			                t.get(3, String.class),
+			                t.get(4,Boolean.class));
 					}
 							).collect(Collectors.toList());
 			return ResponseEntity.ok(ServiceResponseBean.builder().status(Boolean.TRUE).data(salaryPaymentDateBean).build());

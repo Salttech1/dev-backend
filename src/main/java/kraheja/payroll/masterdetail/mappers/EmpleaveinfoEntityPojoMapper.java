@@ -29,33 +29,32 @@ import kraheja.payroll.entity.Empleaveinfo;
 import kraheja.payroll.entity.EmpleaveinfoCK;
 
 public interface EmpleaveinfoEntityPojoMapper {
-//	@SuppressWarnings("unchecked")
-//public static Function	<List<Empleaveinfo>, List<EmpleaveinfoResponseBean>> fetchEmpleaveinfoEntityPojoMapper = empleaveinfoEntityList -> {
-//return empleaveinfoEntityList.stream().map(empleaveinfoEntity -> {
-//return EmpleaveinfoResponseBean.builder()
-//.empcode(empleaveinfoEntity.getEmpleaveinfoCK().getElinEmpcode())
-//					.leavecode(empleaveinfoEntity.getEmpleaveinfoCK().getElinLeavecode())
-//					.acyear(empleaveinfoEntity.getEmpleaveinfoCK().getElinAcyear())
-//					.compoffearned(empleaveinfoEntity.getElinCompoffearned())
-//					.dayexcessadj(empleaveinfoEntity.getElinDayexcessadj())
-//					.daysavailed(empleaveinfoEntity.getElinDaysavailed())
-//					.daysbf(empleaveinfoEntity.getElinDaysbf())
-//					.daysencashed(empleaveinfoEntity.getElinDaysencashed())
-//					.daysentitled(empleaveinfoEntity.getElinDaysentitled())
-//					.ipaddress(empleaveinfoEntity.getElinIpaddress())
-//					.machinename(empleaveinfoEntity.getElinMachinename())
-//					.maxdayscf(empleaveinfoEntity.getElinMaxdayscf())
-//					.maxdaysenc(empleaveinfoEntity.getElinMaxdaysenc())
-//					.modifiedon(empleaveinfoEntity.getElinModifiedon())
-//					.module(empleaveinfoEntity.getElinModule())
-//					.remark(empleaveinfoEntity.getElinRemark())
-//					.site(empleaveinfoEntity.getElinSite())
-//					.userid(empleaveinfoEntity.getElinUserid())
-//					.active(empleaveinfoEntity.)
-//.build(); 
-//}).collect(Collectors.toList());
-//
-//};
+	@SuppressWarnings("unchecked")
+public static Function	<List<Empleaveinfo>, List<EmpleaveinfoResponseBean>> fetchEmpleaveinfoEntityPojoMapper = empleaveinfoEntityList -> {
+return empleaveinfoEntityList.stream().map(empleaveinfoEntity -> {
+return EmpleaveinfoResponseBean.builder()
+.empcode(empleaveinfoEntity.getEmpleaveinfoCK().getElinEmpcode())
+					.leavecode(empleaveinfoEntity.getEmpleaveinfoCK().getElinLeavecode().charAt(0))
+					.acyear(empleaveinfoEntity.getEmpleaveinfoCK().getElinAcyear())
+					.compoffearned(empleaveinfoEntity.getElinCompoffearned())
+					.dayexcessadj(empleaveinfoEntity.getElinDayexcessadj())
+					.daysavailed(empleaveinfoEntity.getElinDaysavailed())
+					.daysbf(empleaveinfoEntity.getElinDaysbf())
+					.daysencashed(empleaveinfoEntity.getElinDaysencashed())
+					.daysentitled(empleaveinfoEntity.getElinDaysentitled())
+					.ipaddress(empleaveinfoEntity.getElinIpaddress())
+					.machinename(empleaveinfoEntity.getElinMachinename())
+					.maxdayscf(empleaveinfoEntity.getElinMaxdayscf())
+					.maxdaysenc(empleaveinfoEntity.getElinMaxdaysenc())
+					.modifiedon(empleaveinfoEntity.getElinModifiedon())
+					.module(empleaveinfoEntity.getElinModule())
+					.remark(empleaveinfoEntity.getElinRemark())
+					.site(empleaveinfoEntity.getElinSite())
+					.userid(empleaveinfoEntity.getElinUserid())
+.build(); 
+}).collect(Collectors.toList());
+
+};
 
 //List<EmpleaveinfoRequestBean>
 //(empleaveinfoRequestBeanList)

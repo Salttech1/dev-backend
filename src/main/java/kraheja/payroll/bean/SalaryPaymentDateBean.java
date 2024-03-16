@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.Builder.Default;
 
 @Data
 @Builder
@@ -20,4 +21,7 @@ private String  Empcode;
 private String  Fullname;
 private Double  NetPay;
 private String  PayDate;
+
+@Default
+private Boolean isUpdate = Boolean.FALSE;
 }

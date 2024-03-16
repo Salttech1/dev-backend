@@ -61,4 +61,7 @@ public class ApiResponseMessage {
 	public static final String ONLY_ONE_ALLOWED_BOTH_OF_THEM_MASTERAUTHYN_OR_MASTERAUTHNO = "allowed only one either masterAuthYN or masterAuthNo.";
 	public static final String CANNOT_MODIFY_THIS_REOCRD = "Cannot Modify this reocrd.Final Bill Generated for this Logic Note.";
 	public static final String ONLY_ONE_ALLOWED_BOTH_OF_THEM_MASTERCERTYN_OR_MASTERCERTNO = "allowed only one either masterCertificateYN or masterCertificateNo.";
+	public static final String  LC_CERTIFICATE_IS_ALREADY_PASSED = "LC Certificate is already passed / paid.";
+	public static final String  LC_AUTHORISATION_IS_ALREADY_PASSED = "LC Authorisation is already passed / paid.";
+
 }

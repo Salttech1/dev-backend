@@ -16,7 +16,7 @@ public class KrahejaApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(KrahejaApplication.class, args);
 	}
-	
+
 	@EventListener(ApplicationStartedEvent.class)
 	public void onStart() {
 		log.info("Application started successfully.");

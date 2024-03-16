@@ -14,7 +14,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 import kraheja.constant.ApiResponseMessage;
-import kraheja.enggsys.lcsystem.annotations.CheckMasterynMasterNo;
 import kraheja.enggsys.lcsystem.payload.db.SupplierDBResponse;
 import kraheja.payload.GenericResponse;
 import lombok.AllArgsConstructor;

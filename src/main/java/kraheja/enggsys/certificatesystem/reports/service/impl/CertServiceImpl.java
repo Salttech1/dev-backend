@@ -926,7 +926,7 @@ public class CertServiceImpl implements CertService {
 
 						}
 					}
-// start of added by vicky for matcertlink
+// start 1st of added by vicky for matcertlink
 //	                 Workcode total amount (To print on certificate copy)					
 					Query queryForTempCertprint = null;
 					queryForTempCertprint = this.entityManager.createNativeQuery(
@@ -987,8 +987,8 @@ public class CertServiceImpl implements CertService {
 							return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 						}
 					}
-// end of added by vicky for matcertlink					
-				// start of added by vicky for matcertlink
+// end of 1st added by vicky for matcertlink					
+// start of 2nd added by vicky for matcertlink
 //                Material group total amount (To print on certificate copy)					
 				Query queryForTempCertprint1 = null;
 				queryForTempCertprint1 = this.entityManager.createNativeQuery(
@@ -1047,8 +1047,69 @@ public class CertServiceImpl implements CertService {
 						return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 					}
 				}
-//end of added by vicky for matcertlink					
-			}
+//end of 2nd added by vicky for matcertlink					
+//// start of 3rd added by vicky for workmatlink
+////              Material group total amount (To print on certificate copy)					
+//				Query queryForTempCertprint1 = null;
+//				queryForTempCertprint1 = this.entityManager.createNativeQuery(
+//
+////						"SELECT Trim(mcl_code) AS MatCode , mcl_groupcode , mcl_desc ,(SELECT mat_matname FROM material WHERE Trim(mat_matgroup) = Trim(mcl_code) and mat_level = '1') AS MatName ,Nvl(sum(auth_authamount),0) AS AuthAmt FROM matcertlink , auth_h WHERE trim(auth_bldgcode) (+) =:StrLocBldgCode  AND (auth_matgroup (+) = matcertlink.mcl_code) AND trim(auth_coy) (+) = :StrLocCoyCode AND auth_authtype (+) not in ('A', 'L', 'C') AND auth_authstatus (+) > '4' AND auth_authstatus (+) NOT IN ('6','8') AND mcl_type = 'M' AND mcl_groupcode IN (SELECT mcl_groupcode FROM matcertlink WHERE mcl_groupcode IN ( SELECT ep_printgroup FROM epworks WHERE TRIM(ep_workcode) = :StrLocWorkCode AND ep_closedate IS NULL) AND mcl_type = 'W' AND trim(mcl_code) = :StrLocWorkCode ) GROUP BY  mcl_code , mcl_groupcode , mcl_des",
+//						"SELECT TRIM(mcl_code) AS MatCode, mcl_groupcode, mcl_desc, (SELECT mat_matname FROM material WHERE TRIM(mat_matgroup) = TRIM(mcl_code) AND mat_level = '1') AS MatName, NVL(SUM(auth_authamount), 0) AS AuthAmt FROM matcertlink LEFT JOIN auth_h ON TRIM(auth_matgroup) = TRIM(matcertlink.mcl_code) WHERE TRIM(auth_bldgcode) = :StrLocBldgCode AND TRIM(auth_coy) = :StrLocCoyCode AND auth_authtype NOT IN ('A', 'L', 'C') AND auth_authstatus > '4' AND auth_authstatus NOT IN ('6', '8') AND mcl_type = 'M' AND mcl_groupcode IN (SELECT mcl_groupcode FROM matcertlink WHERE mcl_groupcode IN (SELECT ep_printgroup FROM epworks WHERE TRIM(ep_workcode) = :StrLocWorkCode AND ep_closedate IS NULL) AND mcl_type = 'W' AND TRIM(mcl_code) = :StrLocWorkCode) GROUP BY mcl_code, mcl_groupcode, mcl_desc",
+//						Tuple.class);
+//				queryForTempCertprint1.setParameter("StrLocBldgCode", cert.getCertBldgcode().trim());
+//				queryForTempCertprint1.setParameter("StrLocWorkCode", cert.getCertWorkcode().trim());
+//				queryForTempCertprint1.setParameter("StrLocCoyCode", cert.getCertCoy().trim());
+//				List<Tuple> queryForTempCertprint1ResultSetList = queryForTempCertprint1.getResultList();
+//				if (CollectionUtils.isNotEmpty(queryForTempCertprint1ResultSetList)) {
+//					List<MatcertLinkPrintCertBean> MatcertLinkPrintCertBeanList = queryForTempCertprint1ResultSetList
+//							.stream().map(t -> {
+//								return MatcertLinkPrintCertBean.builder()
+//										.tmpCode(Objects.nonNull(t.get(0, String.class))
+//												? t.get(0, String.class).trim()
+//												: CommonConstraints.INSTANCE.SPACE_STRING)
+//										.tmpGroupcode(Objects.nonNull(t.get(1, String.class))
+//												? t.get(1, String.class).trim()
+//												: CommonConstraints.INSTANCE.SPACE_STRING)
+//										.tmpGroupdesc(Objects.nonNull(t.get(2, String.class))
+//												? t.get(2, String.class).trim()
+//												: CommonConstraints.INSTANCE.SPACE_STRING)
+//										.tmpCodedesc(Objects.nonNull(t.get(3, String.class))
+//												? t.get(3, String.class).trim()
+//												: CommonConstraints.INSTANCE.SPACE_STRING)
+//										.tmpTotamt(Objects.nonNull(t.get(4, BigDecimal.class))
+//												? t.get(4, BigDecimal.class).doubleValue()
+//												: null)
+//										.build();
+//							}).collect(Collectors.toList());
+//					LOGGER.info("MatcertLinkPrintCertBean List Size :: {}", MatcertLinkPrintCertBeanList.size());
+//					LOGGER.info("MatcertLinkPrintCertBean :: {}", MatcertLinkPrintCertBeanList);
+//
+//					for (MatcertLinkPrintCertBean MatcertLinkPrintCertBean : MatcertLinkPrintCertBeanList) {
+//							tempCertprintList
+//									.add(TempCertprint.builder()
+//											.tempcertprintCK(TempCertprintCK.builder()
+//													.tmpCertnum(cert.getCertCK().getCertCertnum()).tmpType("W")
+//													.tmpCode(MatcertLinkPrintCertBean.getTmpCode())
+//													.tmpSessionid(Integer.valueOf(sessionId)).build())
+//											.tmpCodedesc(MatcertLinkPrintCertBean.getTmpCodedesc())
+//											.tmpGroupcode(MatcertLinkPrintCertBean.getTmpGroupcode())
+//											.tmpGroupdesc(MatcertLinkPrintCertBean.getTmpGroupdesc())
+//											.tmpTotamt(MatcertLinkPrintCertBean.getTmpTotamt().intValue())
+//											.tmpToday(LocalDateTime.now())
+//											.tmpSite(GenericAuditContextHolder.getContext().getSite())
+//											.tmpUserid(GenericAuditContextHolder.getContext().getUserid()).build());
+//							LOGGER.info("tempCertprintList :: {} ", tempCertprintList);
+//					}
+//
+//					if (CollectionUtils.isNotEmpty(tempCertprintList)) {
+//						this.tempCertprintRepository.saveAllAndFlush(tempCertprintList);
+//					} else {
+//						return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+//					}
+//				}
+////end of 3rd added by vicky for workmatlink					
+
+				}
 
 				// List<Dbnoteh> dbnotehEntityList = this.dbnotehRepository
 				// .findByDbnhAuthnoIn(certConditionBasedList.stream()

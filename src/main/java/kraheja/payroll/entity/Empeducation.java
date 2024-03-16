@@ -75,7 +75,7 @@ public class Empeducation implements Serializable {
 	private String eeduModule ;
 
 	@Column(name="EEDU_PERCOFMARKS")
-	private Integer eeduPercofmarks ;
+	private Double eeduPercofmarks ;
 
 	@Column(name="EEDU_SITE")
 	private String eeduSite ;

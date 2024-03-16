@@ -31,7 +31,7 @@ public class EmpeducationRequestBean {
 	private String mainsubjetcs ;
 	private LocalDateTime modifiedon ;
 	private String module ;
-	private Integer percofmarks ;
+	private Double percofmarks ;
 	private String site ;
 	private String userid ;
 	//add or update flag

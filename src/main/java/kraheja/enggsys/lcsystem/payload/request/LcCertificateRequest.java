@@ -13,7 +13,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 import kraheja.constant.ApiResponseMessage;
-import kraheja.enggsys.lcsystem.annotations.CheckMasterCertynMasterCertNo;
 import kraheja.enggsys.lcsystem.payload.response.ContractResponse;
 import kraheja.payload.GenericResponse;
 import lombok.AllArgsConstructor;
@@ -30,7 +29,7 @@ import lombok.experimental.SuperBuilder;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-@CheckMasterCertynMasterCertNo
+//@CheckMasterCertynMasterCertNo
 @JsonInclude(Include.NON_DEFAULT)
 public class LcCertificateRequest extends GenericResponse{
 	@Builder.Default private String tranType = "N";
