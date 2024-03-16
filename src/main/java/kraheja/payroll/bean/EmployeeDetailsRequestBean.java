@@ -45,4 +45,5 @@ public class EmployeeDetailsRequestBean {
 	private AddressRequestBean addressmail;
 	private AddressRequestBean addressres;
 	private PartyRequestBean partyRequestBean;
+	String modifiedDate;
 }

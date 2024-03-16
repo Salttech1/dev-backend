@@ -2,7 +2,7 @@ package kraheja.enggsys.entity;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.time.LocalDate;
+
 import javax.persistence.Column;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;

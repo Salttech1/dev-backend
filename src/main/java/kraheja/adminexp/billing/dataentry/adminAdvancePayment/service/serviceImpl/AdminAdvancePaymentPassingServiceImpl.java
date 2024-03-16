@@ -110,22 +110,24 @@ public class AdminAdvancePaymentPassingServiceImpl implements AdminAdvancePaymen
 
 			genericAccountingLogic.updateActranh(tranSer, new SimpleDateFormat("dd/MM/yyyy").format(new Date()), "GL",
 					admadvanceEntity.getAdvnPartytype(), admadvanceEntity.getAdvnPartycode(), tranAmount,
-					admadvanceEntity.getAdvnActranser(), admadvanceEntity.getAdvnActranser(), "N", "N", "N", "N", "N",
+					admadvanceEntity.getAdvnActranser(), admadvanceEntity.getAdvnActranser(), "N", null, null, null, null,
 					admadvanceEntity.getAdvnNarration(), admadvanceEntity.getAdvnCoy().trim(), "Y", "N", "N", "PF",
 					false);
 			List<ActrandBean> basicAmountBreakup = new ArrayList<>();
 			List<ActrandBean> gstAmountBreakup = new ArrayList<>();
 			List<ActrandBean> tdsAmountBreakup = new ArrayList<>();
+			
+			Double basicAmount=admadvanceEntity.getAdvnBasicamt() + admadvanceEntity.getAdvnFotoamount();
 
 			basicAmountBreakup = GenericAccountingLogic.initialiseActrandBreakups("PF", "11401026",
 					admadvanceEntity.getAdvnPartytype(), "", admadvanceEntity.getAdvnPartytype(),
 					admadvanceEntity.getAdvnPartycode(), admadvanceEntity.getAdvnProject(),
 					admadvanceEntity.getAdvnPartycode(), "80000006", " ", "", "", "GL",
-					admadvanceEntity.getAdvnPartycode(), admadvanceEntity.getAdvnBasicamt(),
+					admadvanceEntity.getAdvnPartycode(), -1 * basicAmount,
 					admadvanceEntity.getAdvnBldgcode(), "", "", new SimpleDateFormat("dd/MM/yyyy").format(new Date()),
 					bunumCounter, "Advance Money - Basic Amount", tranSer, "GL",
 					companyEntity.getCompanyCK().getCoyProp(), admadvanceEntity.getAdvnCoy(),
-					admadvanceEntity.getAdvnActranser(), admadvanceEntity.getAdvnPinvdate().toString(), "", "", "", "",
+					admadvanceEntity.getAdmadvanceCK().getAdvnSer(), admadvanceEntity.getAdvnPinvdate().toString(), "", "", "", "",
 					0.0, admadvanceEntity.getAdmadvanceCK().getAdvnSer(),
 					admadvanceEntity.getAdvnDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), "A",
 					admadvanceEntity.getAdvnPartytype(), admadvanceEntity.getAdvnPartycode());
@@ -140,11 +142,11 @@ public class AdminAdvancePaymentPassingServiceImpl implements AdminAdvancePaymen
 						admadvanceEntity.getAdvnPartytype(), " ", admadvanceEntity.getAdvnPartytype(),
 						admadvanceEntity.getAdvnPartycode(), admadvanceEntity.getAdvnProject(),
 						admadvanceEntity.getAdvnPartycode(), "80000006", " ", "", "", "GL",
-						admadvanceEntity.getAdvnPartycode(), admadvanceEntity.getAdvnGstamt(),
+						admadvanceEntity.getAdvnPartycode(), -1 * admadvanceEntity.getAdvnGstamt(),
 						admadvanceEntity.getAdvnBldgcode(), "", "",
 						new SimpleDateFormat("dd/MM/yyyy").format(new Date()), bunumCounter, "Advance Money - GST",
 						tranSer, "GL", companyEntity.getCompanyCK().getCoyProp(), admadvanceEntity.getAdvnCoy(),
-						admadvanceEntity.getAdvnActranser(), admadvanceEntity.getAdvnPinvdate().toString(), "", "", "",
+						admadvanceEntity.getAdmadvanceCK().getAdvnSer(), admadvanceEntity.getAdvnPinvdate().toString(), "", "", "",
 						"", 0.0, admadvanceEntity.getAdmadvanceCK().getAdvnSer(),
 						admadvanceEntity.getAdvnDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), "A",
 						admadvanceEntity.getAdvnPartytype(), admadvanceEntity.getAdvnPartycode());
@@ -161,11 +163,11 @@ public class AdminAdvancePaymentPassingServiceImpl implements AdminAdvancePaymen
 						admadvanceEntity.getAdvnTdsacmajor().trim(), " ", "", admadvanceEntity.getAdvnPartytype(),
 						admadvanceEntity.getAdvnPartycode(), admadvanceEntity.getAdvnProject(),
 						admadvanceEntity.getAdvnPartycode(), "80000006", " ", "", "", "GL",
-						admadvanceEntity.getAdvnPartycode(), admadvanceEntity.getAdvnTdsamount(),
+						admadvanceEntity.getAdvnPartycode(),admadvanceEntity.getAdvnTdsamount(),
 						admadvanceEntity.getAdvnBldgcode(), "", "",
 						new SimpleDateFormat("dd/MM/yyyy").format(new Date()), bunumCounter, "Advance Money - TDS",
 						tranSer, "GL", companyEntity.getCompanyCK().getCoyProp(), admadvanceEntity.getAdvnCoy(),
-						admadvanceEntity.getAdvnActranser(), admadvanceEntity.getAdvnPinvdate().toString(), "", "", "",
+						admadvanceEntity.getAdmadvanceCK().getAdvnSer(), admadvanceEntity.getAdvnPinvdate().toString(), "", "", "",
 						"", 0.0, admadvanceEntity.getAdmadvanceCK().getAdvnSer(),
 						admadvanceEntity.getAdvnDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), "A",
 						admadvanceEntity.getAdvnPartytype(), admadvanceEntity.getAdvnPartycode());

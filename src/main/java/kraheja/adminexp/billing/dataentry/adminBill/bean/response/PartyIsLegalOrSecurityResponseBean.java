@@ -15,4 +15,6 @@ public class PartyIsLegalOrSecurityResponseBean {
    private Boolean isLegal;
    private Boolean isSecurity;
    private Boolean isDisabled;
+   private String expClass;
+
 }

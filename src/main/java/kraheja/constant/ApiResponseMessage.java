@@ -47,9 +47,9 @@ public class ApiResponseMessage {
 	public static final String RECORD_NOT_FOUNDED = "record is not founded.";
 	
 	//LC CERTIFICATE 
-	public static final String LC_CERTIFICATE_FAILED_SAVED = "lc Certificate failed save.";
-	public static final String LC_CERTIFICATE_SUCCESSFULLY_SAVED = "lc Certificate save successfully.";
-	public static final String LC_CERTIFICATE_SUCCESSFULLY_UPDATED = "lc Certificate updated successfully.";
+	public static final String LC_CERTIFICATE_FAILED_SAVED = "LC Certificate failed save.";
+	public static final String LC_CERTIFICATE_SUCCESSFULLY_SAVED = "LC Certificate save successfully.";
+	public static final String LC_CERTIFICATE_SUCCESSFULLY_UPDATED = "LC Certificate updated successfully.";
 	public static final String ONLY_ALLOWED_110_CHARACTERS = "the field must not exceed 110 characters.";
 	public static final String THE_FIELD_IS_REQUIRED = "the field is required.";
 	public static final String GREATER_THAN_OR_EQUAL_ZERO = "the field must be greater than or equal to zero.";

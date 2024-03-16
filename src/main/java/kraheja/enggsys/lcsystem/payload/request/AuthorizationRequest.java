@@ -32,7 +32,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(Include.NON_DEFAULT)
-@CheckMasterynMasterNo
+//@CheckMasterynMasterNo
 public class AuthorizationRequest extends GenericResponse{
 	@Builder.Default private String tranType = "N";
 	

@@ -47,6 +47,7 @@ import kraheja.payroll.bean.EmployeeDetailsRequestBean;
 import kraheja.payroll.bean.EmployeeDetailsResponseBean;
 import kraheja.payroll.bean.EmployeeSalDetailsResponseBean;
 import kraheja.payroll.bean.EmpsalarypackageEarnDedBean;
+import kraheja.payroll.bean.response.EmpleaveinfoResponseBean;
 import kraheja.payroll.entity.Empassetinfo;
 import kraheja.payroll.entity.Empeducation;
 import kraheja.payroll.entity.Empexperience;
@@ -217,9 +218,42 @@ public class EmployeeDetailsEntryEditServiceImpl implements EmployeeDetailsEntry
 		}
 		
 		//get empleave details
-		List<Empleaveinfo> empleaveinfolist = empleaveinfoRepository.findByEmpleaveinfoCK_ElinEmpcodeOrderByEmpleaveinfoCK_ElinAcyearDesc(empcode);
-		if(CollectionUtils.isNotEmpty( empschemeinfolist)) {
-			employeeDetailsResponseBean.setEmpleaveinfoResponseBean(EmpleaveinfoEntityPojoMapper.fetchEmpleaveinfoEntityPojoMapper.apply(empleaveinfolist));
+//		List<Empleaveinfo> empleaveinfolist = empleaveinfoRepository.findByEmpleaveinfoCK_ElinEmpcodeOrderByEmpleaveinfoCK_ElinAcyearDesc(empcode);
+//		if(CollectionUtils.isNotEmpty( empschemeinfolist)) {
+//			employeeDetailsResponseBean.setEmpleaveinfoResponseBean(EmpleaveinfoEntityPojoMapper.fetchEmpleaveinfoEntityPojoMapper.apply(empleaveinfolist));
+//		}
+		List<Tuple> empleaveinfolist = empleaveinfoRepository.findByEmpleaveinfoEmpCode(empcode);
+		if(empleaveinfolist.size()>0) {
+			List<EmpleaveinfoResponseBean> empleaveinfoResponseBean = 
+					empleaveinfolist.stream().map(lev -> {
+						String element15 = lev.get(15, String.class);
+	                    if (element15 != null) {
+	                        element15 = element15.trim();
+	                    }
+						return new EmpleaveinfoResponseBean(
+							lev.get(0, String.class).trim(),
+							lev.get(1, BigDecimal.class).doubleValue(),
+							lev.get(2, BigDecimal.class).doubleValue(),
+							lev.get(3, BigDecimal.class).doubleValue(),
+							lev.get(4, BigDecimal.class).doubleValue(),
+							lev.get(5, BigDecimal.class).doubleValue(),
+							lev.get(6, BigDecimal.class).doubleValue(),
+							lev.get(7, String.class).trim(),
+							lev.get(8, String.class).trim(),
+							lev.get(9, Character.class),
+							lev.get(10, String.class).trim(),
+							lev.get(11, BigDecimal.class).doubleValue(),
+							lev.get(12, BigDecimal.class).doubleValue(),
+							lev.get(13, Timestamp.class).toLocalDateTime(),
+							lev.get(14, String.class).trim(),
+							element15,
+							lev.get(16, String.class).trim(),
+							lev.get(17, String.class).trim(),
+							lev.get(18, Character.class)
+							);
+					}
+					).collect(Collectors.toList());
+			employeeDetailsResponseBean.setEmpleaveinfoResponseBean(empleaveinfoResponseBean);
 		}
 		
 		//get empfamily details
@@ -850,25 +884,39 @@ public class EmployeeDetailsEntryEditServiceImpl implements EmployeeDetailsEntry
 //		Emppersonal
 		logger.info("employeeDetailsRequestBean :: {}", employeeDetailsRequestBean);
 		String empcode = employeeDetailsRequestBean.getEmppersonalRequestBean().getEmpcode().trim();
-		Boolean InsertPersonal = false;
+		Boolean InsertPersonal = false ,InsertParty = false;
+		
+	    String site = Objects.nonNull(GenericAuditContextHolder.getContext().getSite()) ? GenericAuditContextHolder.getContext().getSite() : "MUM"; 
+	    String userid = Objects.nonNull(GenericAuditContextHolder.getContext().getUserid()) ? GenericAuditContextHolder.getContext().getUserid(): "KRaheja";
+	    String machineName = CommonUtils.INSTANCE.getClientConfig().getMachineName();
+	    String ipAddress = CommonUtils.INSTANCE.getClientConfig().getIpAddress();
+	    String modifiedDate = employeeDetailsRequestBean.getModifiedDate(); //"01/01/2024"; //Get this date from employeeDetailsRequestBean which will be send by frontend
+	    String lastDay = CommonUtils.INSTANCE.addDaysInString(modifiedDate, -1);  //"31-DEC-2023";
+	    logger.info("lastday :: {}",lastDay);	
 		Emppersonal emppersonal = emppersonalRepository.GetEmppersonalDetails(empcode,CommonUtils.INSTANCE.closeDateInLocalDateTime().toLocalDate());
 		if (!emppersonal.getEperFullname().trim().equals(employeeDetailsRequestBean.getEmppersonalRequestBean().getFullname().trim())) {
 			InsertPersonal = true;
+			InsertParty = true;
 			}
 		if (!emppersonal.getEperMaritalstat().trim().equals(employeeDetailsRequestBean.getEmppersonalRequestBean().getMaritalstat().trim())) {
 			InsertPersonal = true;
 		}
 		if (InsertPersonal == true) {
 			//add new record and update the effectiveupto date in last record
+//			String empcode,String lastday,String site, String userid, String machinename, String ipaddress,String closedate
+			this.emppersonalRepository.updateemppersonal(empcode, lastDay, site, userid, machineName, ipAddress, CommonConstraints.INSTANCE.closeDate);
+//			set values for personal
+			employeeDetailsRequestBean.getEmppersonalRequestBean().setEffectiveupto(CommonConstraints.INSTANCE.closeDateDDMMYYYY);
+			employeeDetailsRequestBean.getEmppersonalRequestBean().setEffectivefrom(modifiedDate);
+			employeeDetailsRequestBean.getEmppersonalRequestBean().setModule("MAINSCRMOD");
+			logger.info("employeeDetailsRequestBean :: {}", employeeDetailsRequestBean);
+			this.emppersonalRepository.save(EmppersonalEntityPojoMapper.addEmppersonalPojoEntityMapper.apply(employeeDetailsRequestBean.getEmppersonalRequestBean()));
 		} else { //update emppersonal record
 			this.emppersonalRepository.save(EmppersonalEntityPojoMapper.updateEmppersonalEntityPojoMapper.apply(emppersonal, employeeDetailsRequestBean.getEmppersonalRequestBean()));
 		}
 //		Empjobinfo
 		Boolean InsertEmpjobinfo = false;
 		Empjobinfo empjobinfo = empjobinfoRepository.GetEmpjobinfoDetails(empcode,CommonUtils.INSTANCE.closeDateInLocalDateTime().toLocalDate());
-		if (!empjobinfo.getEjinJobstatus().trim().equals(employeeDetailsRequestBean.getEmpjobinfoRequestBean().getJobstatus().trim())) {
-			InsertEmpjobinfo = true;
-		}
 		if (!empjobinfo.getEjinEmptype().trim().equals(employeeDetailsRequestBean.getEmpjobinfoRequestBean().getEmptype().trim())) {
 			InsertEmpjobinfo = true;
 		}
@@ -897,9 +945,86 @@ public class EmployeeDetailsEntryEditServiceImpl implements EmployeeDetailsEntry
 		}
 		if (InsertEmpjobinfo == true) {
 			//add new record and update the effectiveupto date in last record
+			this.empjobinfoRepository.updateempjobinfo(empcode, lastDay, site, userid, machineName, ipAddress, CommonConstraints.INSTANCE.closeDate);
+			employeeDetailsRequestBean.getEmpjobinfoRequestBean().setEffectiveupto(CommonConstraints.INSTANCE.closeDateDDMMYYYY);
+			employeeDetailsRequestBean.getEmpjobinfoRequestBean().setEffectivefrom(modifiedDate);
+			employeeDetailsRequestBean.getEmpjobinfoRequestBean().setModule("MAINSCRMOD");
+			this.empjobinfoRepository.save(EmpjobinfoEntityPojoMapper.addEmpjobinfoPojoEntityMapper.apply(employeeDetailsRequestBean.getEmpjobinfoRequestBean()));
 		} else { //update empjobinfo record
 			this.empjobinfoRepository.save(EmpjobinfoEntityPojoMapper.updateEmpjobinfoEntityPojoMapper.apply(empjobinfo, employeeDetailsRequestBean.getEmpjobinfoRequestBean()));
 		}
+//		set address - Mail
+		Address addressmail = addressRepository.findByAdrAdownerAndAdrAdsegmentAndAdrAdtypeAndAdrAdser(empcode,AdSegment.EMPL.toString(),AdType.MAIL.toString(),"02");
+		employeeDetailsRequestBean.getAddressmail().setAdsegment(AdSegment.EMPL.toString());
+		employeeDetailsRequestBean.getAddressmail().setSer("02");
+		employeeDetailsRequestBean.getAddressmail().setTopser("01");
+		employeeDetailsRequestBean.getAddressmail().setAdtype(AdType.MAIL.toString());
+		employeeDetailsRequestBean.getAddressmail().setUserid(GenericAuditContextHolder.getContext().getUserid());
+		if (employeeDetailsRequestBean.getEmppersonalRequestBean().getFullname().length() > 40) {
+			employeeDetailsRequestBean.getAddressmail().setFname(employeeDetailsRequestBean.getEmppersonalRequestBean().getFullname().substring(0, 40));
+		} else {
+			employeeDetailsRequestBean.getAddressmail().setFname(employeeDetailsRequestBean.getEmppersonalRequestBean().getFullname());
+		}
+		
+		employeeDetailsRequestBean.getAddressmail().setToday(CommonConstraints.INSTANCE.closeDateDDMMYYYY);
+		String siteFromDBEntity = this.entityRepository.findByEntityCk_EntClassAndEntityCk_EntChar1(CommonConstraints.INSTANCE.ENTITY_SITE, CommonConstraints.INSTANCE.ENTITY_CHAR1);
+		this.addressRepository.save(AddressMapper.updateAddressPojoEntityMapping.apply(addressmail, employeeDetailsRequestBean.getAddressmail())) ;
+//		set address - Res
+		Address addressres = addressRepository.findByAdrAdownerAndAdrAdsegmentAndAdrAdtypeAndAdrAdser(empcode,AdSegment.EMPL.toString(),AdType.RES.toString(),"02");
+		if (Objects.nonNull(addressres)){
+//			update
+			if(Objects.nonNull(employeeDetailsRequestBean.getAddressres())) {
+			employeeDetailsRequestBean.getAddressres().setAdsegment(AdSegment.EMPL.toString());
+			employeeDetailsRequestBean.getAddressres().setSer("02");
+			employeeDetailsRequestBean.getAddressres().setTopser("02");
+			employeeDetailsRequestBean.getAddressres().setAdtype(AdType.RES.toString());
+			employeeDetailsRequestBean.getAddressres().setUserid(GenericAuditContextHolder.getContext().getUserid());
+			if (employeeDetailsRequestBean.getEmppersonalRequestBean().getFullname().length() > 40) {
+				employeeDetailsRequestBean.getAddressres().setFname(employeeDetailsRequestBean.getEmppersonalRequestBean().getFullname().substring(0, 40));
+			} else {
+				employeeDetailsRequestBean.getAddressres().setFname(employeeDetailsRequestBean.getEmppersonalRequestBean().getFullname());
+			}
+			
+			employeeDetailsRequestBean.getAddressmail().setToday(CommonConstraints.INSTANCE.closeDateDDMMYYYY);
+			this.addressRepository.save(AddressMapper.updateAddressPojoEntityMapping.apply(addressres, employeeDetailsRequestBean.getAddressres()));
+			} else {
+//				row is there in address table and null is coming from frontend means delete the row from database
+//				address data is deleted from frontend
+				this.addressRepository.deleteByAdrAdownerAndAdrAdsegmentAndAdrAdtypeAndAdrAdser(empcode,AdSegment.EMPL.toString(),AdType.RES.toString(),"02");
+			}
+		} else {
+//			add
+			if(Objects.nonNull(employeeDetailsRequestBean.getAddressres())) {
+			employeeDetailsRequestBean.getAddressres().setAdsegment(AdSegment.EMPL.toString());
+			employeeDetailsRequestBean.getAddressres().setSer("02");
+			employeeDetailsRequestBean.getAddressres().setTopser("02");
+			employeeDetailsRequestBean.getAddressres().setAdtype(AdType.RES.toString());
+			employeeDetailsRequestBean.getAddressres().setUserid(GenericAuditContextHolder.getContext().getUserid());
+			if (employeeDetailsRequestBean.getEmppersonalRequestBean().getFullname().length() > 40) {
+				employeeDetailsRequestBean.getAddressres().setFname(employeeDetailsRequestBean.getEmppersonalRequestBean().getFullname().substring(0, 40));
+			} else {
+				employeeDetailsRequestBean.getAddressres().setFname(employeeDetailsRequestBean.getEmppersonalRequestBean().getFullname());
+			}
+			
+			this.addressRepository.save(AddressMapper.addAddressPojoEntityMapping.apply(new Object[] {employeeDetailsRequestBean.getAddressres(), siteFromDBEntity, empcode}));
+			} 
+		}
+//		Empassetinfo
+		this.employeeDetailsEntryEditRepository.deleteEmpassetinfo(empcode);
+		this.empassetinfoRepository.saveAll(EmpassetinfoEntityPojoMapper.addEmpassetinfoPojoEntityMapper.apply(new Object[] {employeeDetailsRequestBean.getEmpassetinfoRequestBean(),empcode,"MAINSCRMOD"}));
+//		Empeducation
+		this.employeeDetailsEntryEditRepository.deleteEmpeducation(empcode);
+		this.empeducationRepository.saveAll(EmpeducationEntityPojoMapper.addEmpeducationPojoEntityMapper.apply(new Object[] {employeeDetailsRequestBean.getEmpeducationRequestBean(),empcode,"MAINSCRMOD"}));
+//		set empfamily
+		this.employeeDetailsEntryEditRepository.deleteEmpfamily(empcode);
+		this.empfamilyRepository.saveAll(EmpfamilyEntityPojoMapper.addEmpfamilyPojoEntityMapper.apply(new Object[] {employeeDetailsRequestBean.getEmpfamilyRequestBean(),empcode,"MAINSCRMOD"}));
+//		set empreference
+		this.employeeDetailsEntryEditRepository.deleteEmpreference(empcode);
+		this.empreferenceRepository.saveAll(EmpreferenceEntityPojoMapper.addEmpreferencePojoEntityMapper.apply(new Object[] {employeeDetailsRequestBean.getEmpreferenceRequestBean(),empcode,"MAINSCRMOD"}));
+//		set empexperience
+		this.employeeDetailsEntryEditRepository.deleteEmpexperience(empcode);
+		this.empexperienceRepository.saveAll(EmpexperienceEntityPojoMapper.addEmpexperiencePojoEntityMapper.apply(new Object[] {employeeDetailsRequestBean.getEmpexperienceRequestBean(),empcode,"MAINSCRMOD"}));
+//		Package, scheme, leave and party work pending
 		return ResponseEntity.ok(ServiceResponseBean.builder().status(Boolean.TRUE).message(empcode.concat(" Modified Successfully.")).build());
 	}
 }

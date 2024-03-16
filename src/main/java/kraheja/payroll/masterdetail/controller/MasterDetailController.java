@@ -71,6 +71,6 @@ public class MasterDetailController {
 	public ResponseEntity<?> updateOldEmplDetails(@Valid @RequestBody EmployeeDetailsRequestBean employeeDetailsRequestBean){
 		return this.employeeDetailsEntryEditService.updateOldEmplDetails(employeeDetailsRequestBean);
 	}
-	
+
 }	
 

@@ -67,6 +67,7 @@ public class EmpjobinfoRequestBean {
 	private String region ;
 	private String remark ;
 	private String reportingto ;
+	private String resignationdate;
 	private String salarygrpcode ;
 	private String section ;
 	private String settlementdate ;

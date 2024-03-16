@@ -61,7 +61,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 	public GenericResponse makeAuthorization(AuthorizationRequest request, String supplier, String building,String authType, String authnum) {
 		log.debug("authorization request obtaint: {}", request);
 		
-		Lcauth prvLcauth = this.fetchLastAuthorizationData(supplier, building,authType, authnum);
+		Lcauth prvLcauth = this.fetchLastAuthorizationData(supplier, building,authType, authnum,request.getTranType());
 		log.debug("prvLcauth db response obtaint: {}", prvLcauth);
 		
 		SupplierDBResponse supplierDetail = this.getSupplierDetail(supplier, building, authType, authnum);
@@ -98,10 +98,20 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 		return GenericResponse.builder().result(Result.SUCCESS).responseCode(ApiResponseCode.SUCCESS).message(ApiResponseMessage.SUCCESSFULLY_PERSIST).build();
 	}
 
-	private Lcauth fetchLastAuthorizationData(String supplier, String building, String authType, String authnum) {
+	private Lcauth fetchLastAuthorizationData(String supplier, String building, String authType, String authnum, String tranType) {
+//		String maxAuthNum = authnum;
+//		if (tranType.equalsIgnoreCase("N")) {
+//			maxAuthNum = lcauthRepository.findLastLcauthNumBySupplierAndBuildingAndAuthType(supplier,building,authType);
+//			log.debug("maxAuthNum : {}", maxAuthNum);
+//		}
+		return lcauthRepository.findLastLcauthBySupplierAndBuildingAndAuthTypeAuthnum(authnum);
+	}
+
+	@Override
+	public String fetchlastauthNumber(String supplier, String building, String authType) {
 		String maxAuthNum = lcauthRepository.findLastLcauthNumBySupplierAndBuildingAndAuthType(supplier,building,authType);
 		log.debug("maxAuthNum : {}", maxAuthNum);
-		return lcauthRepository.findLastLcauthBySupplierAndBuildingAndAuthTypeAuthnum(maxAuthNum);
+		return maxAuthNum;
 	}
 
 }

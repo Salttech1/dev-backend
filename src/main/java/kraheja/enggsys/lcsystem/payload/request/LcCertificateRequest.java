@@ -14,6 +14,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 import kraheja.constant.ApiResponseMessage;
 import kraheja.enggsys.lcsystem.annotations.CheckMasterCertynMasterCertNo;
+import kraheja.enggsys.lcsystem.payload.response.ContractResponse;
 import kraheja.payload.GenericResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -65,6 +66,6 @@ public class LcCertificateRequest extends GenericResponse{
 	@Size(max = 110, message = ApiResponseMessage.ONLY_ALLOWED_110_CHARACTERS)
 	private String purpose;
 	private String masterCertificateYN;
-//	private ContractResponse contractRequest;
+	private ContractResponse contractRequest;
 	@Valid private List<LcDetails> lcDetailsList;
 }

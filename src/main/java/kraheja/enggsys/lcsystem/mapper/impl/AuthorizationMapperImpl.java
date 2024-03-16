@@ -46,6 +46,7 @@ public class AuthorizationMapperImpl implements AuthorizationMapper {
 					.inspectionDate(authboe.getLcabInspectiondate())
 					.shipDate(authboe.getLcabLastshipmentdate())
 					.docsRecdDate(authboe.getLcabShipdocrecddate())
+					.instCertSubmdt(authboe.getLcabInstcertsubmdt())
 					.build());
 		}
 		
@@ -53,15 +54,15 @@ public class AuthorizationMapperImpl implements AuthorizationMapper {
 		.result(Result.SUCCESS)
 		.responseCode(ApiResponseCode.SUCCESS)
 		.message(ApiResponseMessage.FETCH_SUCCESSFULLY)
-//		.supplierResponse(SupplierDBResponse
-//				.builder()
-//				.bldgCoy(lcauth.getLcahCoy())
-//				.bldgProp(lcauth.getLcahProp())
-//				.bldgProject(lcauth.getLcahProject())
-//				.bldgMisproject(lcauth.getLcahMisproject())
-//				.bldgProperty(lcauth.getLcahProperty())
-//				.bldgMisbldg(lcauth.getLcahMisbldg())
-//				.build())
+		.supplierResponse(SupplierDBResponse
+				.builder()
+				.bldgCoy(lcauth.getLcahCoy())
+				.bldgProp(lcauth.getLcahProp())
+				.bldgProject(lcauth.getLcahProject())
+				.bldgMisproject(lcauth.getLcahMisproject())
+				.bldgProperty(lcauth.getLcahProperty())
+				.bldgMisbldg(lcauth.getLcahMisbldg())
+				.build())
 		.tranType("E")
 		.preparedBy(lcauth.getLcahPreparedby())
 		.noOfDays(lcauth.getLcahNoofdays())

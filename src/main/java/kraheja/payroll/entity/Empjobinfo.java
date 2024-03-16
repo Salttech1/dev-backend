@@ -169,6 +169,9 @@ public class Empjobinfo implements Serializable {
 
 	@Column(name="EJIN_REMARK")
 	private String ejinRemark ;
+	
+	@Column(name="EJIN_RESIGNATIONDATE")
+	private LocalDate ejinResignationdate; 
 
 	@Column(name="EJIN_REPORTINGTO")
 	private String ejinReportingto ;

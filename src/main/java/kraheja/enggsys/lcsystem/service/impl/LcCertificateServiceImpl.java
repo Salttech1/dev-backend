@@ -85,6 +85,50 @@ public class LcCertificateServiceImpl implements LcCertificateService {
 
 		return contractResponse;
 	}
+	
+	
+	public ContractResponse retrieveContract(String recId,String lcerCertnum) {
+		
+		Lccert lccert = lccertRepository.findByLccertCK_LcerCertnum(lcerCertnum);
+		
+		Tuple tuple = lccertRepository.retrieveHeaderDetailsForLCCert(lcerCertnum,lcerCertnum);
+		Double pCertAmt = (tuple.get(6, BigDecimal.class) != null) ? tuple.get(6, BigDecimal.class).doubleValue() : 0.00;
+		Double totalAmt = (tuple.get(7, BigDecimal.class) != null) ? tuple.get(7, BigDecimal.class).doubleValue() : 0.00;
+		Double totTwoptc = (tuple.get(8, BigDecimal.class) != null) ? tuple.get(8, BigDecimal.class).doubleValue() : 0.00;
+//		String pCertNum = (tuple.get(0, String.class) != null) ? tuple.get(0, String.class) : null;
+//		String pCertType = (tuple.get(1, String.class) != null) ? tuple.get(1, String.class) : null;
+//		Integer pCertRunSer = (tuple.get(2, BigDecimal.class) != null) ? tuple.get(2, BigDecimal.class).intValue()
+//				: null;
+//		LocalDate pCertDate = (tuple.get(3, Timestamp.class) != null)
+//				? tuple.get(3, Timestamp.class).toLocalDateTime().toLocalDate()
+//						: null;
+//		LocalDate fromDate = (tuple.get(4, Timestamp.class) != null)
+//				? tuple.get(4, Timestamp.class).toLocalDateTime().toLocalDate()
+//						: null;
+//		LocalDate toDate = (tuple.get(5, Timestamp.class) != null)
+//				? tuple.get(5, Timestamp.class).toLocalDateTime().toLocalDate()
+//						: null;
+
+//		String proprietor = (tuple.get(9, String.class) != null) ? tuple.get(9, String.class) : "";
+//		String company = (tuple.get(10, String.class) != null) ? tuple.get(10, String.class) : "";
+//		String project = (tuple.get(11, String.class) != null) ? tuple.get(11, String.class) : "";
+//		String proprty = (tuple.get(12, String.class) != null) ? tuple.get(12, String.class) : "";
+//		String building = (tuple.get(13, String.class) != null) ? tuple.get(13, String.class) : "";
+//		String workCode = (tuple.get(14, String.class) != null) ? tuple.get(14, String.class) : "";
+//		String partyCode = (tuple.get(15, String.class) != null) ? tuple.get(15, String.class) : "";
+//		String partyType = (tuple.get(16, String.class) != null) ? tuple.get(16, String.class) : "";
+
+		ContractResponse contractResponse = ContractResponse.builder().prvCertNum(lcerCertnum).prvCertType(lccert.getLcerCerttype())
+				.prvRunSer(lccert.getLcerRunser()).prvCertDate(lccert.getLcerCertdate()).proprietor(lccert.getLcerProp())
+				.company(lccert.getLcerCoy()).project(lccert.getLcerProject())
+				.proprty(lccert.getLcerProperty()).building(lccert.getLcerBldgcode())
+				.workCode(lccert.getLcerWorkcode()).partyCode(lccert.getLcerPartycode())
+				.partyType(lccert.getLcerPartytype()).prvCertAmt(pCertAmt).totalAmtCertified(totalAmt)
+				.prvTotTwoptc(totTwoptc).durationFrom(lccert.getLcerPrv_Durfrom()).durationUpto(lccert.getLcerPrv_Durto()).build();
+//		log.debug("contractResponse obtain: {}", contractResponse);
+		
+		return contractResponse;
+	}
 
 	@Override
 	public LcCertificateRequest retrieveCertificate(String recId, String certType, String lcerCertnum) {
@@ -97,7 +141,7 @@ public class LcCertificateServiceImpl implements LcCertificateService {
 		} else {
 			recId = lccert.getLcerContract().trim();
 			certType = lccert.getLcerCerttype().trim();
-			ContractResponse contractResponse = this.getContract(recId, certType, lcerCertnum);
+			ContractResponse contractResponse = this.retrieveContract(recId,lcerCertnum);
 			log.debug("contractResponse: {}", contractResponse);
 
 			List<Lcauthboe> lcauthboe = lcauthboeRepository.findLcauthboeByLcauthboeCKLcabAuthnum(lcerCertnum);
@@ -138,6 +182,7 @@ public class LcCertificateServiceImpl implements LcCertificateService {
 					.purpose(lccert.getLcerPurpose())
 					.revNum(lccert.getLcerCertrevnum())
 					.lcDetailsList(lcAuthboeList)
+					.contractRequest(contractResponse)
 					.build();
 		}
 	}

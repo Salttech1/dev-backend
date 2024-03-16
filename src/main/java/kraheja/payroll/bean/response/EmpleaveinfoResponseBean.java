@@ -34,7 +34,7 @@ public class EmpleaveinfoResponseBean {
 	private Double daysentitled ;
 	private String empcode ;
 	private String ipaddress ;
-	private String leavecode ;
+	private Character leavecode ;
 	private String machinename ;
 	private Double maxdayscf ;
 	private Double maxdaysenc ;
@@ -43,4 +43,5 @@ public class EmpleaveinfoResponseBean {
 	private String remark ;
 	private String site ;
 	private String userid ;
+	private Character active;
 }

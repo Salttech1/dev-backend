@@ -427,7 +427,7 @@ public class AuxiliaryPersistanceServiceImpl implements AuxiliaryPersistanceServ
 			double tds = (grid.getTds() > 0) ? -grid.getTds() : 0.00;
 			
 			OutinfraCK outinfraCK = OutinfraCK.builder().infRecnum(receiptNumber).infOwnerid(ownerId)
-					.infBldgcode(bldgCode).infMonth(grid.getMonthName()).infNarrcode(grid.getNarrationCode()).build();
+					.infBldgcode(bldgCode).infMonth(grid.getMonthName()).infNarrcode(grid.getNarrationCode().trim()).build();
 
 			Outinfra outinfra = Outinfra.builder().outinfraCK(outinfraCK).infWing(wing).infFlatnum(flatNumber)
 					.infCoy(buildingDBResponse.getBldgCoy()).infAmtdue(0.00).infAmtpaid(grid.getAuxiPaid())

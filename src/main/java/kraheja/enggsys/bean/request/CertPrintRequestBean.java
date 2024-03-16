@@ -21,5 +21,7 @@ public class CertPrintRequestBean {
 	private String authDateTo;
 	private String authNumberFrom;
 	private String authNumberTo;
+	private String coycode;
+	private String partycode;
 }
 

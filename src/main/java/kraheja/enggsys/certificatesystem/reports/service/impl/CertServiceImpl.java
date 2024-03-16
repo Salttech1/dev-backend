@@ -90,7 +90,10 @@ import kraheja.commons.utils.ValueContainer;
 import kraheja.feign.internal.ReportInternalFeignClient;
 import kraheja.purch.bean.PreviousAuthDetailBean;
 import kraheja.enggsys.bean.CertPrintDetailBean;
+import kraheja.enggsys.bean.MatcertLinkPrintCertBean;
 import kraheja.purch.bean.request.Auth_DRequestBean;
+import kraheja.enggsys.bean.request.CertdetailsRequestBean;
+
 import kraheja.purch.bean.request.CancelMaterialPaymentRequestBean;
 import kraheja.purch.bean.request.MaterialDetailRequestBean;
 import kraheja.enggsys.bean.request.CertPrintRequestBean;
@@ -117,41 +120,60 @@ import kraheja.enggsys.bean.response.CertPrintDetailResponseBean;
 import kraheja.purch.bean.response.WorkMatNarrationResponseBean;
 import kraheja.purch.entity.Auth_D;
 import kraheja.purch.entity.Auth_H;
+import kraheja.enggsys.entity.Certdetails;
 import kraheja.enggsys.entity.Cert;
+
 import kraheja.purch.entity.Bldgmatbillfinal;
 import kraheja.purch.entity.Dbnoted;
 import kraheja.purch.entity.DbnotedCK;
+import kraheja.enggsys.entity.Cdbnoted;
 import kraheja.purch.entity.Dbnoteh;
 import kraheja.purch.entity.DbnotehCK;
+import kraheja.enggsys.entity.Cdbnoteh;
 import kraheja.purch.entity.Matcertestimateactual;
 import kraheja.purch.entity.Material;
 import kraheja.purch.entity.Pbilld;
 import kraheja.purch.entity.Pbillh;
+import kraheja.enggsys.entity.Cbilld;
+import kraheja.enggsys.entity.Cbillh;
 import kraheja.purch.entity.TempMatAuthprint;
 import kraheja.purch.entity.TempMatAuthprintCK;
+import kraheja.enggsys.entity.TempCertprint;
+import kraheja.enggsys.entity.TempCertprintCK;
 import kraheja.purch.enums.AuthTypeEnum;
+import kraheja.enggsys.enums.CertTypeEnum;
 import kraheja.purch.enums.BillTypeEnum;
 import kraheja.purch.enums.CodeHelpTableTypeEnum;
 import kraheja.purch.materialpayments.mappers.AdvrecvoucherEntityPojoMapper;
 import kraheja.purch.materialpayments.mappers.Auth_DEntityPojoMapper;
 import kraheja.purch.materialpayments.mappers.Auth_HEntityPojoMapper;
+import kraheja.enggsys.certificatesystem.dataentry.mappers.CertdetailsMapper;
+import kraheja.enggsys.certificatesystem.dataentry.mappers.CertMapper;
+import kraheja.enggsys.certificatesystem.dataentry.mappers.CertworknarrdtlMapper;
 import kraheja.purch.materialpayments.mappers.AuthmatgroupnarrdtlEntityPojoMapper;
 import kraheja.purch.materialpayments.service.MaterialPaymentsService;
 import kraheja.enggsys.certificatesystem.reports.service.CertService;
 import kraheja.purch.repository.AdvrecvoucherRepository;
 import kraheja.purch.repository.AuthDRepository;
+import kraheja.enggsys.repository.CertdetailsRepository;
 import kraheja.purch.repository.AuthHRepository;
 import kraheja.enggsys.repository.CertRepository;
 import kraheja.purch.repository.AuthmatgroupnarrdtlRepository;
+import kraheja.enggsys.repository.CertworknarrdtlRepository;
 import kraheja.enggsys.repository.ContractdebitRepository;
 import kraheja.purch.repository.BldgmatbillfinalRepository;
 import kraheja.purch.repository.DbnotedRepository;
+import kraheja.enggsys.repository.CdbnotedRepository;
 import kraheja.purch.repository.DbnotehRepository;
+import kraheja.enggsys.repository.CdbnotehRepository;
 import kraheja.purch.repository.MatcertestimateactualRepository;
 import kraheja.purch.repository.MaterialRepository;
 import kraheja.purch.repository.PbilldRepository;
 import kraheja.purch.repository.PbillhRepository;
+import kraheja.enggsys.repository.CbilldRepository;
+import kraheja.enggsys.repository.CbillhRepository;
 import kraheja.purch.repository.TempMatAuthprintRepository;
+import kraheja.enggsys.repository.TempCertprintRepository;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -177,7 +199,13 @@ public class CertServiceImpl implements CertService {
 	private AuthDRepository authDRepository;
 
 	@Autowired
+	private CertdetailsRepository certDetailsRepository;
+
+	@Autowired
 	private PbillhRepository pbillhRepository;
+
+	@Autowired
+	private CbillhRepository cbillhRepository;
 
 	@Autowired
 	private PartyRepository partyRepository;
@@ -198,6 +226,9 @@ public class CertServiceImpl implements CertService {
 	private AuthmatgroupnarrdtlRepository authmatgroupnarrdtlRepository;
 
 	@Autowired
+	private CertworknarrdtlRepository certworknarrdtlRepository;
+
+	@Autowired
 	private ContractdebitRepository contractdebitRepository;
 
 	@Autowired
@@ -208,6 +239,12 @@ public class CertServiceImpl implements CertService {
 
 	@Autowired
 	private DbnotedRepository dbnotedRepository;
+
+	@Autowired
+	private CdbnotehRepository cdbnotehRepository;
+
+	@Autowired
+	private CdbnotedRepository cdbnotedRepository;
 
 	@Autowired
 	private ExnarrRepository exnarrRepository;
@@ -231,6 +268,9 @@ public class CertServiceImpl implements CertService {
 	private TempMatAuthprintRepository tempMatAuthprintRepository;
 
 	@Autowired
+	private TempCertprintRepository tempCertprintRepository;
+
+	@Autowired
 	private EpworksRepository epworksRepository;
 
 	@Autowired
@@ -238,6 +278,9 @@ public class CertServiceImpl implements CertService {
 
 	@Autowired
 	private PbilldRepository pbilldRepository;
+
+	@Autowired
+	private CbilldRepository cbilldRepository;
 
 	@Autowired
 	ReportInternalFeignClient reportInternalFeignClient;
@@ -250,13 +293,12 @@ public class CertServiceImpl implements CertService {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public ResponseEntity<?> insertIntoMaterialPaymentTemp(
-			CertPrintRequestBean certPrintRequestBean) {
+	public ResponseEntity<?> insertIntoMaterialPaymentTemp(CertPrintRequestBean certPrintRequestBean) {
 		String sessionId = GenericCounterIncrementLogicUtil.generateTranNo("#SESS", "#SESS");
 		String whereCondition = "";
 		String andString = "AND";
-		List<Cert> certList = this.certRepository. findByCertPrintedonAndCertUserid(null,
-				GenericAuditContextHolder.getContext().getUserid().trim());
+		List<Cert> certList = this.certRepository
+				.findByCertPrintedonISNULLAndCertUserid(GenericAuditContextHolder.getContext().getUserid().trim());
 		if (certPrintRequestBean.getIsUnprintedAuths()) {
 			if (CollectionUtils.isEmpty(certList))
 				return ResponseEntity.ok(ServiceResponseBean.builder().status(Boolean.FALSE)
@@ -272,30 +314,45 @@ public class CertServiceImpl implements CertService {
 				if (StringUtils.isBlank(whereCondition))
 					andString = "";
 				// certdate is with time
-				whereCondition += andString + " a.cert_certdate between '"
-						+ certPrintRequestBean.getAuthDateFrom() + "' and '"
-						+ certPrintRequestBean.getAuthDateTo() + "'";
+				whereCondition += andString + " a.cert_certdate between '" + certPrintRequestBean.getAuthDateFrom()
+						+ "' and '" + certPrintRequestBean.getAuthDateTo() + "'";
 			}
 
-			
-			Boolean isBlank1=StringUtils.isNotBlank(certPrintRequestBean.getAuthNumberFrom());
-			Boolean isBlank2=StringUtils.isNotBlank(certPrintRequestBean.getAuthDateTo());
-			
+			Boolean isBlank1 = StringUtils.isNotBlank(certPrintRequestBean.getAuthNumberFrom());
+			Boolean isBlank2 = StringUtils.isNotBlank(certPrintRequestBean.getAuthDateTo());
+
 			if (StringUtils.isNotBlank(certPrintRequestBean.getAuthNumberFrom())
 					&& StringUtils.isNotBlank(certPrintRequestBean.getAuthNumberTo())) {
 				if (StringUtils.isBlank(whereCondition))
 					andString = "";
 				else
 					andString = "AND";
-				whereCondition += andString + " a.cert_certnum BETWEEN '"
-						+ certPrintRequestBean.getAuthNumberFrom() + "' and '"
-						+ certPrintRequestBean.getAuthNumberTo() + "'";
+				whereCondition += andString + " a.cert_certnum BETWEEN '" + certPrintRequestBean.getAuthNumberFrom()
+						+ "' and '" + certPrintRequestBean.getAuthNumberTo() + "'";
+			}
+			Boolean isBlank3 = StringUtils.isNotBlank(certPrintRequestBean.getCoycode());
+
+			if (StringUtils.isNotBlank(certPrintRequestBean.getCoycode())) {
+				if (StringUtils.isBlank(whereCondition))
+					andString = "";
+				else
+					andString = "AND";
+				whereCondition += andString + " a.cert_coy = '" + certPrintRequestBean.getCoycode() + "' ";
+			}
+			Boolean isBlank4 = StringUtils.isNotBlank(certPrintRequestBean.getPartycode());
+
+			if (StringUtils.isNotBlank(certPrintRequestBean.getPartycode())) {
+				if (StringUtils.isBlank(whereCondition))
+					andString = "";
+				else
+					andString = "AND";
+				whereCondition += andString + " a.cert_partycode = '" + certPrintRequestBean.getPartycode() + "' ";
 			}
 		}
 
 		Query certQuery = this.entityManager.createNativeQuery("SELECT * FROM Cert a where " + whereCondition,
 				Cert.class);
-		
+
 		List<Cert> certConditionBasedList = certQuery.getResultList();
 		LOGGER.info("CERT QUERY :: {}", certConditionBasedList);
 
@@ -307,7 +364,7 @@ public class CertServiceImpl implements CertService {
 					String payCover = "";
 					Double payAmt = cert.getCertPayamount();
 					Double certAmt = cert.getCertPayamount();// -----------> for cert type c it is certpayamount but
-																// negative
+					// negative
 					String amountInWords = "";
 					String address2 = "";
 					String certStat = "";
@@ -315,18 +372,20 @@ public class CertServiceImpl implements CertService {
 					Party partyName = null;
 					Double sumAdvAdj = BigInteger.ZERO.doubleValue();
 					List<TempMatAuthprint> tempMatAuthprintList = new ArrayList<>();
+					List<TempCertprint> tempCertprintList = new ArrayList<>();
 
 					if (((Objects.isNull(cert.getCertPrinted()) || cert.getCertPrinted() <= 0))
 							&& Integer.valueOf(cert.getCertCertstatus()) < 5)
 						certStatus = PrintStatusEnum.ORIGINAL.getValue();
 					else
 						certStatus = PrintStatusEnum.REPRINT.getValue();
-					if (cert.getCertCerttype().equals("R"))
+					if (cert.getCertCerttype().trim().equals("R"))
 						certStatus = PrintStatusEnum.ORIGINAL.getValue();
 
-//					if (!cert.getCertCerttype().trim().equals("R") && Integer.valueOf(cert.getCertCertstatus()) >= 5)
-//					if (!cert.getCertCerttype().trim().equals("R"))
-						noOfPrint = cert.getCertPrinted().intValue() + 1;
+					// if (!cert.getCertCerttype().trim().equals("R") &&
+					// Integer.valueOf(cert.getCertCertstatus()) >= 5)
+					// if (!cert.getCertCerttype().trim().equals("R"))
+					noOfPrint = cert.getCertPrinted().intValue() + 1;
 
 					List<Auth_D> authDList = this.authDRepository
 							.findByAuthdCK_AutdAuthnum(cert.getCertCK().getCertCertnum());
@@ -336,10 +395,18 @@ public class CertServiceImpl implements CertService {
 						sumAdvAdj = authDList.stream().filter(f -> f.getAutdAdvadj() != null)
 								.mapToDouble(Auth_D::getAutdAdvadj).sum();
 
-					if (cert.getCertCerttype().trim().equals("R") || cert.getCertCerttype().trim().equals("L"))
+					List<Certdetails> certDetailsList = this.certDetailsRepository
+							.findByCertdetailsCK_CrtdCertnum(cert.getCertCK().getCertCertnum());
+					LOGGER.info("certDetailsList size :: {}", certDetailsList.size());
+					LOGGER.info("certDetailsList  :: {}", certDetailsList);
+					if (CollectionUtils.isNotEmpty(certDetailsList))
+						sumAdvAdj = certDetailsList.stream().filter(f -> f.getCrtdAdvadjusted() != null)
+								.mapToDouble(Certdetails::getCrtdAdvadjusted).sum();
+
+					if (cert.getCertCerttype().trim().equals("M") || cert.getCertCerttype().trim().equals("L"))
 						sumAdvAdj += cert.getCertCertamount();
 
-					if (cert.getCertCerttype().trim().equals("C")) {
+					if (cert.getCertCerttype().trim().equals("B")) {
 						payCover = "RECOVER";
 						payAmt = cert.getCertPayamount() * -1;
 						certAmt = cert.getCertPayamount() * -1;
@@ -362,8 +429,8 @@ public class CertServiceImpl implements CertService {
 					if (Objects.nonNull(cert.getCertPartycode())) {
 						partyName = this.partyRepository
 								.findByPartyCk_ParPartycodeAndPartyCk_ParClosedateAndPartyCk_ParPartytype(
-										cert.getCertPartycode().trim(),
-										CommonUtils.INSTANCE.closeDateInLocalDateTime(), PartyType.E.toString());
+										cert.getCertPartycode().trim(), CommonUtils.INSTANCE.closeDateInLocalDateTime(),
+										PartyType.E.toString());
 						LOGGER.info("Party Name :: {}", partyName);
 
 						addressEntity = this.addressRepository
@@ -405,9 +472,10 @@ public class CertServiceImpl implements CertService {
 							? this.buildingRepository.findByBuildingCK_BldgCode(cert.getCertBldgcode().trim())
 							: null;
 
-					Material materialName = Objects.nonNull(cert.getCertWorkcode()) ? this.materialRepository
-							.findByMaterialCK_MatMatgroupAndMatLevel(cert.getCertWorkcode(), "1") : null;
-
+					Material materialName = Objects.nonNull(cert.getCertWorkcode())
+							? this.materialRepository.findByMaterialCK_MatMatgroupAndMatLevel(cert.getCertWorkcode(),
+									"1")
+							: null;
 
 					Company companyName = Objects.nonNull(cert.getCertCoy())
 							? this.companyRepository.findByCompanyCK_CoyCodeAndCompanyCK_CoyClosedate(
@@ -439,11 +507,10 @@ public class CertServiceImpl implements CertService {
 					Query query = this.entityManager.createNativeQuery(
 							"SELECT sum(cert_certamount - cert_advadjusted) FROM CERT WHERE CERT_BLDGCODE  = '"
 									+ cert.getCertBldgcode().trim() + "' and CERT_WORKCODE = '"
-									+  CommonConstraints.INSTANCE.SPACE_STRING
-									+ "' and CERT_CERTSTATUS > '4' and cert_certtype not in ('A','L','M')  GROUP BY CERT_BLDGCODE,CERT_WORKCODE,CERT_PARTYCODE",
+									+ CommonConstraints.INSTANCE.SPACE_STRING
+									+ "' and CERT_CERTSTATUS > '4' and trim(cert_certtype) not in ('A','L','M')  GROUP BY CERT_BLDGCODE,CERT_WORKCODE,CERT_PARTYCODE",
 							Tuple.class);
 
-					
 					List<Tuple> resultSetList = query.getResultList();
 					Double certAmt1 = CollectionUtils.isNotEmpty(resultSetList)
 							? resultSetList.stream()
@@ -453,80 +520,197 @@ public class CertServiceImpl implements CertService {
 					LOGGER.info("cfBldgWork :: {}", cfBldgWork);
 
 					Query queryForTempMatAuthPrintDetail = null;
-					if (cert.getCertCerttype().trim().equals("N")) {
-						queryForTempMatAuthPrintDetail = this.entityManager.createNativeQuery(
-								"Select     autd_suppbillno,    autd_suppbilldt,     autd_authqty,             autd_authamount,    autd_authtdsamt,     autd_advadj,              autd_relretamt,     autd_retentionadj,  AUTD_AUTHNUM,        autd_authtype,            autd_retainamt,     pblh_retainos,       pblh_SER,                 pblh_partycode,     PBLH_AUTHNUM,        PBLD_CESER,               cert_CERTNUM,       cert_PARTYCODE       from AUTH_D,  PBILLH, PBILLD, Cert                               where (AUTD_SUPPBILLNO = PBLH_SUPPBILLNO)                          and (AUTD_SUPPBILLDT = PBLH_SUPPBILLDT)                            and (PBLD_SER = PBLH_SER)                                          and (PBLH_AUTHNUM = AUTD_AUTHNUM )                                 and (AUTD_AUTHNUM = cert_certNUM)                                  AND (cert_PARTYCODE = pblh_partycode)                              and (cert_certNUM = PBLH_AUTHNUM)                                  and (AUTD_AUTHNUM = :certNum)",
-								Tuple.class);
-					}
 					if (cert.getCertCerttype().trim().equals("L")) {
 						queryForTempMatAuthPrintDetail = this.entityManager.createNativeQuery(
-								"Select     autd_suppbillno,    autd_suppbilldt,     autd_authqty,             autd_authamount,    autd_authtdsamt,     autd_advadj,              autd_relretamt,     autd_retentionadj,  AUTD_AUTHNUM,        autd_authtype,            autd_retainamt,     pblh_retainos,       pblh_SER,                 pblh_partycode,     PBLH_AUTHNUM,        PBLD_CESER,               cert_certNUM,       cert_PARTYCODE       from AUTH_D,  PBILLH, PBILLD, Cert                               where (AUTD_SUPPBILLNO = PBLH_SUPPBILLNO)                          and (AUTD_SUPPBILLDT = PBLH_SUPPBILLDT)                            and (PBLD_SER = PBLH_SER)                                          and (AUTD_AUTHNUM = cert_certNUM)                                  AND (cert_PARTYCODE = pblh_partycode)                              and (AUTD_AUTHNUM = :certNum)",
+								// "Select crtd_contbillno, cblh_contbilldt, cbld_quantity, crtd_billamount,
+								// crtd_tdsamt, crtd_advadjusted, crtd_relretamt, cert_writeoffamt,
+								// crtd_certnum, CERT_CERTTYPE, cblh_retention, cblh_retainos, cblh_ser,
+								// cblh_partycode, cblh_certnum, cblh_omsserviceyn, cert_CERTNUM, cert_PARTYCODE
+								// from certdetails, CBILLH, CBILLD, Cert where (crtd_contbillno =
+								// cblh_contbillno) and (crtd_contract = cblh_contract) and (cbld_ser =
+								// cblh_ser) and (cblh_certnum = crtd_certnum ) and (crtd_certnum =
+								// cert_certNUM) AND (cert_PARTYCODE = cblh_partycode) and (cert_certNUM =
+								// cblh_certnum) and (crtd_certnum = :certNum)",
+								// "Select '' as crtd_contbillno, null as cblh_contbilldt, 0.0 as cbld_quantity,
+								// cert_PAYAMOUNT as autd_authamount, 0 as crtd_tdsamt, 0 as crtd_advadjusted, 0
+								// as crtd_relretamt, 0 as cert_writeoffamt, '' as crtd_certnum, CERT_CERTTYPE,
+								// 0 as cblh_retention, '' as cblh_retainos, '' as cblh_ser, '' as
+								// cblh_partycode, '' as cblh_certnum, '' as cblh_omsserviceyn, cert_CERTNUM,
+								// cert_PARTYCODE from Cert where (cert_certNUM = :certNum)",
+								"Select crtd_contbillno,cblh_contbilldt,cbld_quantity,crtd_billamount,crtd_tdsamt,crtd_advadjusted,crtd_relretamt,cert_writeoffamt,crtd_certnum,CERT_CERTTYPE,cblh_retention,cblh_retainos,cblh_ser,cblh_partycode,cblh_certnum,cblh_omsserviceyn,cert_CERTNUM,cert_PARTYCODE FROM  Cert LEFT JOIN certdetails ON (crtd_certnum = cert_certnum) LEFT JOIN CBILLH ON (cblh_certnum = cert_certnum and cblh_contract = cert_contract and cblh_partycode = cert_PARTYCODE and cblh_contbillno = crtd_contbillno) LEFT JOIN CBILLD ON (cbld_ser = cblh_ser) WHERE cert_certnum = :certNum",
 								Tuple.class);
 					}
-//					if (cert.getCertCerttype().trim().equals("R")) {
-//						queryForTempMatAuthPrintDetail = this.entityManager.createNativeQuery(
-//								"Select     autd_suppbillno,    autd_suppbilldt,     autd_authqty,             autd_authamount,    autd_authtdsamt,     autd_advadj,              autd_relretamt,     autd_retentionadj,  AUTD_AUTHNUM,        autd_authtype,            autd_retainamt,     pblh_retainos,       pblh_SER,                 pblh_partycode,     PBLH_AUTHNUM,        PBLD_CESER,               cert_certNUM,       cert_PARTYCODE       from AUTH_D,  PBILLH, PBILLD, Cert                               where (AUTD_SUPPBILLNO = PBLH_SUPPBILLNO)                          and (AUTD_SUPPBILLDT = PBLH_SUPPBILLDT)                            and (PBLD_SER = PBLH_SER)                                          and (AUTD_AUTHNUM = cert_certNUM)                                  AND (cert_PARTYCODE = pblh_partycode)                              and (AUTD_AUTHNUM = :certNum)",
-//								Tuple.class);
-//					}
 
 					if (cert.getCertCerttype().trim().equals("M")) {
 						queryForTempMatAuthPrintDetail = this.entityManager.createNativeQuery(
-								"Select     '' as autd_suppbillno,   null as  autd_suppbilldt,     0.0 as autd_authqty,             0 as autd_authamount,    0 as autd_authtdsamt,     0 as autd_advadj,              0 as autd_relretamt,     0 as autd_retentionadj,  '' as AUTD_AUTHNUM,        cert_certtype as autd_authtype,            0 as autd_retainamt,     '' as pblh_retainos,       '' as pblh_SER,                 cert_PARTYCODE as pblh_partycode,     '' as PBLH_AUTHNUM,        '' as PBLD_CESER,               cert_certNUM,       cert_PARTYCODE       from   Cert                                                  where (cert_certNUM = :certNum)",
+								// "Select crtd_contbillno, cblh_contbilldt, cbld_quantity, crtd_billamount,
+								// crtd_tdsamt, crtd_advadjusted, crtd_relretamt, cert_writeoffamt,
+								// crtd_certnum, CERT_CERTTYPE, cblh_retention, cblh_retainos, cblh_ser,
+								// cblh_partycode, cblh_certnum, cblh_omsserviceyn, cert_CERTNUM, cert_PARTYCODE
+								// from certdetails, CBILLH, CBILLD, Cert where (crtd_contbillno =
+								// cblh_contbillno) and (crtd_contract = cblh_contract) and (cbld_ser =
+								// cblh_ser) and (cblh_certnum = crtd_certnum ) and (crtd_certnum =
+								// cert_certNUM) AND (cert_PARTYCODE = cblh_partycode) and (cert_certNUM =
+								// cblh_certnum) and (crtd_certnum = :certNum)",
+								// "Select '' as crtd_contbillno, null as cblh_contbilldt, 0.0 as cbld_quantity,
+								// cert_PAYAMOUNT as autd_authamount, 0 as crtd_tdsamt, 0 as crtd_advadjusted, 0
+								// as crtd_relretamt, 0 as cert_writeoffamt, '' as crtd_certnum, CERT_CERTTYPE,
+								// 0 as cblh_retention, '' as cblh_retainos, '' as cblh_ser, '' as
+								// cblh_partycode, '' as cblh_certnum, '' as cblh_omsserviceyn, cert_CERTNUM,
+								// cert_PARTYCODE from Cert where (cert_certNUM = :certNum)",
+								"Select crtd_contbillno,cblh_contbilldt,cbld_quantity,crtd_billamount,crtd_tdsamt,crtd_advadjusted,crtd_relretamt,cert_writeoffamt,crtd_certnum,CERT_CERTTYPE,cblh_retention,cblh_retainos,cblh_ser,cblh_partycode,cblh_certnum,cblh_omsserviceyn,cert_CERTNUM,cert_PARTYCODE FROM  Cert LEFT JOIN certdetails ON (crtd_certnum = cert_certnum) LEFT JOIN CBILLH ON (cblh_certnum = cert_certnum and cblh_contract = cert_contract and cblh_partycode = cert_PARTYCODE and cblh_contbillno = crtd_contbillno) LEFT JOIN CBILLD ON (cbld_ser = cblh_ser) WHERE cert_certnum = :certNum",
 								Tuple.class);
 					}
 
 					if (cert.getCertCerttype().trim().equals("F")) {
 						queryForTempMatAuthPrintDetail = this.entityManager.createNativeQuery(
-								"Select     '' as autd_suppbillno,   null as  autd_suppbilldt,     0.0 as autd_authqty,             0 as autd_authamount,    0 as autd_authtdsamt,     0 as autd_advadj,              0 as autd_relretamt,     0 as autd_retentionadj,  '' as AUTD_AUTHNUM,        cert_certtype as autd_authtype,            0 as autd_retainamt,     '' as pblh_retainos,       '' as pblh_SER,                 cert_PARTYCODE as pblh_partycode,     '' as PBLH_AUTHNUM,        '' as PBLD_CESER,               cert_certNUM,       cert_PARTYCODE       from   Cert                                                  where (cert_certNUM = :certNum)",
+								// "Select crtd_contbillno, cblh_contbilldt, cbld_quantity, crtd_billamount,
+								// crtd_tdsamt, crtd_advadjusted, crtd_relretamt, cert_writeoffamt,
+								// crtd_certnum, CERT_CERTTYPE, cblh_retention, cblh_retainos, cblh_ser,
+								// cblh_partycode, cblh_certnum, cblh_omsserviceyn, cert_CERTNUM, cert_PARTYCODE
+								// from certdetails, CBILLH, CBILLD, Cert where (crtd_contbillno =
+								// cblh_contbillno) and (crtd_contract = cblh_contract) and (cbld_ser =
+								// cblh_ser) and (cblh_certnum = crtd_certnum ) and (crtd_certnum =
+								// cert_certNUM) AND (cert_PARTYCODE = cblh_partycode) and (cert_certNUM =
+								// cblh_certnum) and (crtd_certnum = :certNum)",
+								// "Select '' as crtd_contbillno, null as cblh_contbilldt, 0.0 as cbld_quantity,
+								// cert_PAYAMOUNT as autd_authamount, 0 as crtd_tdsamt, 0 as crtd_advadjusted, 0
+								// as crtd_relretamt, 0 as cert_writeoffamt, '' as crtd_certnum, CERT_CERTTYPE,
+								// 0 as cblh_retention, '' as cblh_retainos, '' as cblh_ser, '' as
+								// cblh_partycode, '' as cblh_certnum, '' as cblh_omsserviceyn, cert_CERTNUM,
+								// cert_PARTYCODE from Cert where (cert_certNUM = :certNum)",
+								"Select crtd_contbillno,cblh_contbilldt,cbld_quantity,crtd_billamount,crtd_tdsamt,crtd_advadjusted,crtd_relretamt,cert_writeoffamt,crtd_certnum,CERT_CERTTYPE,cblh_retention,cblh_retainos,cblh_ser,cblh_partycode,cblh_certnum,cblh_omsserviceyn,cert_CERTNUM,cert_PARTYCODE FROM  Cert LEFT JOIN certdetails ON (crtd_certnum = cert_certnum) LEFT JOIN CBILLH ON (cblh_certnum = cert_certnum and cblh_contract = cert_contract and cblh_partycode = cert_PARTYCODE and cblh_contbillno = crtd_contbillno) LEFT JOIN CBILLD ON (cbld_ser = cblh_ser) WHERE cert_certnum = :certNum",
 								Tuple.class);
 					}
 
 					if (cert.getCertCerttype().trim().equals("B")) {
 						queryForTempMatAuthPrintDetail = this.entityManager.createNativeQuery(
-								"Select     '' as autd_suppbillno,   null as  autd_suppbilldt,     0.0 as autd_authqty,             0 as autd_authamount,    0 as autd_authtdsamt,     0 as autd_advadj,              0 as autd_relretamt,     0 as autd_retentionadj,  '' as AUTD_AUTHNUM,        cert_certtype as autd_authtype,            0 as autd_retainamt,     '' as pblh_retainos,       '' as pblh_SER,                 cert_PARTYCODE as pblh_partycode,     '' as PBLH_AUTHNUM,        '' as PBLD_CESER,               cert_certNUM,       cert_PARTYCODE       from   Cert                                                  where (cert_certNUM = :certNum)",
-								Tuple.class);
-					}
-
-					if (cert.getCertCerttype().trim().equals("S")) {
-						queryForTempMatAuthPrintDetail = this.entityManager.createNativeQuery(
-								"Select     '' as autd_suppbillno,   null as  autd_suppbilldt,     0.0 as autd_authqty,             0 as autd_authamount,    0 as autd_authtdsamt,     0 as autd_advadj,              0 as autd_relretamt,     0 as autd_retentionadj,  '' as AUTD_AUTHNUM,        cert_certtype as autd_authtype,            0 as autd_retainamt,     '' as pblh_retainos,       '' as pblh_SER,                 cert_PARTYCODE as pblh_partycode,     '' as PBLH_AUTHNUM,        '' as PBLD_CESER,               cert_certNUM,       cert_PARTYCODE       from   Cert                                                  where (cert_certNUM = :certNum)",
+								// "Select '' as crtd_contbillno, null as cblh_contbilldt, 0.0 as cbld_quantity,
+								// cert_PAYAMOUNT as autd_authamount, 0 as crtd_tdsamt, 0 as crtd_advadjusted, 0
+								// as crtd_relretamt, 0 as cert_writeoffamt, '' as crtd_certnum, CERT_CERTTYPE,
+								// 0 as cblh_retention, '' as cblh_retainos, '' as cblh_ser, '' as
+								// cblh_partycode, '' as cblh_certnum, '' as cblh_omsserviceyn, cert_CERTNUM,
+								// cert_PARTYCODE from Cert where (cert_certNUM = :certNum)",
+								// "Select '' as crtd_contbillno, null as cblh_contbilldt, 0.0 as cbld_quantity,
+								// cert_PAYAMOUNT as autd_authamount, 0 as crtd_tdsamt, 0 as crtd_advadjusted, 0
+								// as crtd_relretamt, 0 as cert_writeoffamt, '' as crtd_certnum, CERT_CERTTYPE,
+								// 0 as cblh_retention, '' as cblh_retainos, '' as cblh_ser, '' as
+								// cblh_partycode, '' as cblh_certnum, '' as cblh_omsserviceyn, cert_CERTNUM,
+								// cert_PARTYCODE from Cert where (cert_certNUM = :certNum)",
+								"Select crtd_contbillno,cblh_contbilldt,cbld_quantity,crtd_billamount,crtd_tdsamt,crtd_advadjusted,crtd_relretamt,cert_writeoffamt,crtd_certnum,CERT_CERTTYPE,cblh_retention,cblh_retainos,cblh_ser,cblh_partycode,cblh_certnum,cblh_omsserviceyn,cert_CERTNUM,cert_PARTYCODE FROM  Cert LEFT JOIN certdetails ON (crtd_certnum = cert_certnum) LEFT JOIN CBILLH ON (cblh_certnum = cert_certnum and cblh_contract = cert_contract and cblh_partycode = cert_PARTYCODE and cblh_contbillno = crtd_contbillno) LEFT JOIN CBILLD ON (cbld_ser = cblh_ser) WHERE cert_certnum = :certNum",
 								Tuple.class);
 					}
 
 					if (cert.getCertCerttype().trim().equals("L")) {
 						queryForTempMatAuthPrintDetail = this.entityManager.createNativeQuery(
-								"Select     '' as autd_suppbillno,   null as  autd_suppbilldt,     0.0 as autd_authqty,             0 as autd_authamount,    0 as autd_authtdsamt,     0 as autd_advadj,              0 as autd_relretamt,     0 as autd_retentionadj,  '' as AUTD_AUTHNUM,        cert_certtype as autd_authtype,            0 as autd_retainamt,     '' as pblh_retainos,       '' as pblh_SER,                 cert_PARTYCODE as pblh_partycode,     '' as PBLH_AUTHNUM,        '' as PBLD_CESER,               cert_certNUM,       cert_PARTYCODE       from   Cert                                                  where (cert_certNUM = :certNum)",
+								// "Select crtd_contbillno, cblh_contbilldt, cbld_quantity, crtd_billamount,
+								// crtd_tdsamt, crtd_advadjusted, crtd_relretamt, cert_writeoffamt,
+								// crtd_certnum, CERT_CERTTYPE, cblh_retention, cblh_retainos, cblh_ser,
+								// cblh_partycode, cblh_certnum, cblh_omsserviceyn, cert_CERTNUM, cert_PARTYCODE
+								// from certdetails, CBILLH, CBILLD, Cert where (crtd_contbillno =
+								// cblh_contbillno) and (crtd_contract = cblh_contract) and (cbld_ser =
+								// cblh_ser) and (cblh_certnum = crtd_certnum ) and (crtd_certnum =
+								// cert_certNUM) AND (cert_PARTYCODE = cblh_partycode) and (cert_certNUM =
+								// cblh_certnum) and (crtd_certnum = :certNum)",
+								// "Select '' as crtd_contbillno, null as cblh_contbilldt, 0.0 as cbld_quantity,
+								// cert_PAYAMOUNT as autd_authamount, 0 as crtd_tdsamt, 0 as crtd_advadjusted, 0
+								// as crtd_relretamt, 0 as cert_writeoffamt, '' as crtd_certnum, CERT_CERTTYPE,
+								// 0 as cblh_retention, '' as cblh_retainos, '' as cblh_ser, '' as
+								// cblh_partycode, '' as cblh_certnum, '' as cblh_omsserviceyn, cert_CERTNUM,
+								// cert_PARTYCODE from Cert where (cert_certNUM = :certNum)",
+								"Select crtd_contbillno,cblh_contbilldt,cbld_quantity,crtd_billamount,crtd_tdsamt,crtd_advadjusted,crtd_relretamt,cert_writeoffamt,crtd_certnum,CERT_CERTTYPE,cblh_retention,cblh_retainos,cblh_ser,cblh_partycode,cblh_certnum,cblh_omsserviceyn,cert_CERTNUM,cert_PARTYCODE FROM  Cert LEFT JOIN certdetails ON (crtd_certnum = cert_certnum) LEFT JOIN CBILLH ON (cblh_certnum = cert_certnum and cblh_contract = cert_contract and cblh_partycode = cert_PARTYCODE and cblh_contbillno = crtd_contbillno) LEFT JOIN CBILLD ON (cbld_ser = cblh_ser) WHERE cert_certnum = :certNum",
 								Tuple.class);
 					}
 
-					if (cert.getCertCerttype().trim().equals("C")) {
+					if (cert.getCertCerttype().trim().equals("S")) {
 						queryForTempMatAuthPrintDetail = this.entityManager.createNativeQuery(
-								"Select     '' as autd_suppbillno,   null as  autd_suppbilldt,     0.0 as autd_authqty,             0 as autd_authamount,    0 as autd_authtdsamt,     0 as autd_advadj,              0 as autd_relretamt,     0 as autd_retentionadj,  '' as AUTD_AUTHNUM,        cert_certtype as autd_authtype,            0 as autd_retainamt,     '' as pblh_retainos,       '' as pblh_SER,                 cert_PARTYCODE as pblh_partycode,     '' as PBLH_AUTHNUM,        '' as PBLD_CESER,               cert_certNUM,       cert_PARTYCODE       from   Cert                                                  where (cert_certNUM = :certNum)",
+								// "Select '' as crtd_contbillno, null as cblh_contbilldt, 0.0 as cbld_quantity,
+								// cert_PAYAMOUNT as autd_authamount, 0 as crtd_tdsamt, 0 as crtd_advadjusted, 0
+								// as crtd_relretamt, 0 as cert_writeoffamt, '' as crtd_certnum, CERT_CERTTYPE,
+								// 0 as cblh_retention, '' as cblh_retainos, '' as cblh_ser, '' as
+								// cblh_partycode, '' as cblh_certnum, '' as cblh_omsserviceyn, cert_CERTNUM,
+								// cert_PARTYCODE from Cert where (cert_certNUM = :certNum)",
+								// "Select '' as crtd_contbillno, null as cblh_contbilldt, 0.0 as cbld_quantity,
+								// cert_PAYAMOUNT as autd_authamount, 0 as crtd_tdsamt, 0 as crtd_advadjusted, 0
+								// as crtd_relretamt, 0 as cert_writeoffamt, '' as crtd_certnum, CERT_CERTTYPE,
+								// 0 as cblh_retention, '' as cblh_retainos, '' as cblh_ser, '' as
+								// cblh_partycode, '' as cblh_certnum, '' as cblh_omsserviceyn, cert_CERTNUM,
+								// cert_PARTYCODE from Cert where (cert_certNUM = :certNum)",
+								"Select crtd_contbillno,cblh_contbilldt,cbld_quantity,crtd_billamount,crtd_tdsamt,crtd_advadjusted,crtd_relretamt,cert_writeoffamt,crtd_certnum,CERT_CERTTYPE,cblh_retention,cblh_retainos,cblh_ser,cblh_partycode,cblh_certnum,cblh_omsserviceyn,cert_CERTNUM,cert_PARTYCODE FROM  Cert LEFT JOIN certdetails ON (crtd_certnum = cert_certnum) LEFT JOIN CBILLH ON (cblh_certnum = cert_certnum and cblh_contract = cert_contract and cblh_partycode = cert_PARTYCODE and cblh_contbillno = crtd_contbillno) LEFT JOIN CBILLD ON (cbld_ser = cblh_ser) WHERE cert_certnum = :certNum",
 								Tuple.class);
 					}
 
 					if (cert.getCertCerttype().trim().equals("I")) {
 						queryForTempMatAuthPrintDetail = this.entityManager.createNativeQuery(
-								"Select     '' as autd_suppbillno,   null as  autd_suppbilldt,     0.0 as autd_authqty,             cert_PAYAMOUNT as autd_authamount,    0 as autd_authtdsamt,     0 as autd_advadj,              0 as autd_relretamt,     0 as autd_retentionadj,   '' as AUTD_AUTHNUM,        cert_certtype as autd_authtype,            0 as autd_retainamt,     '' as pblh_retainos,       '' as pblh_SER,                 cert_PARTYCODE as pblh_partycode,     '' as PBLH_AUTHNUM,        '' as PBLD_CESER,               cert_certNUM,       cert_PARTYCODE       from   Cert                                                  where (cert_certNUM = :certNum)",
+								// "Select crtd_contbillno, cblh_contbilldt, cbld_quantity, crtd_billamount,
+								// crtd_tdsamt, crtd_advadjusted, crtd_relretamt, cert_writeoffamt,
+								// crtd_certnum, CERT_CERTTYPE, cblh_retention, cblh_retainos, cblh_ser,
+								// cblh_partycode, cblh_certnum, cblh_omsserviceyn, cert_CERTNUM, cert_PARTYCODE
+								// from certdetails, CBILLH, CBILLD, Cert where (crtd_contbillno =
+								// cblh_contbillno) and (crtd_contract = cblh_contract) and (cbld_ser =
+								// cblh_ser) and (cblh_certnum = crtd_certnum ) and (crtd_certnum =
+								// cert_certNUM) AND (cert_PARTYCODE = cblh_partycode) and (cert_certNUM =
+								// cblh_certnum) and (crtd_certnum = :certNum)",
+								// "Select '' as crtd_contbillno, null as cblh_contbilldt, 0.0 as cbld_quantity,
+								// cert_PAYAMOUNT as autd_authamount, 0 as crtd_tdsamt, 0 as crtd_advadjusted, 0
+								// as crtd_relretamt, 0 as cert_writeoffamt, '' as crtd_certnum, CERT_CERTTYPE,
+								// 0 as cblh_retention, '' as cblh_retainos, '' as cblh_ser, '' as
+								// cblh_partycode, '' as cblh_certnum, '' as cblh_omsserviceyn, cert_CERTNUM,
+								// cert_PARTYCODE from Cert where (cert_certNUM = :certNum)",
+								"Select crtd_contbillno,cblh_contbilldt,cbld_quantity,crtd_billamount,crtd_tdsamt,crtd_advadjusted,crtd_relretamt,cert_writeoffamt,crtd_certnum,CERT_CERTTYPE,cblh_retention,cblh_retainos,cblh_ser,cblh_partycode,cblh_certnum,cblh_omsserviceyn,cert_CERTNUM,cert_PARTYCODE FROM  Cert LEFT JOIN certdetails ON (crtd_certnum = cert_certnum) LEFT JOIN CBILLH ON (cblh_certnum = cert_certnum and cblh_contract = cert_contract and cblh_partycode = cert_PARTYCODE and cblh_contbillno = crtd_contbillno) LEFT JOIN CBILLD ON (cbld_ser = cblh_ser) WHERE cert_certnum = :certNum",
 								Tuple.class);
 					}
 
-						if (cert.getCertCerttype().trim().equals("R")) {
-							queryForTempMatAuthPrintDetail = this.entityManager.createNativeQuery(
-									"Select     '' as autd_suppbillno,   null as  autd_suppbilldt,     0.0 as autd_authqty,             cert_PAYAMOUNT as autd_authamount,    0 as autd_authtdsamt,     0 as autd_advadj,              0 as autd_relretamt,     0 as autd_retentionadj,   '' as AUTD_AUTHNUM,        cert_certtype as autd_authtype,            0 as autd_retainamt,     '' as pblh_retainos,       '' as pblh_SER,                 cert_PARTYCODE as pblh_partycode,     '' as PBLH_AUTHNUM,        '' as PBLD_CESER,               cert_certNUM,       cert_PARTYCODE       from   Cert                                                  where (cert_certNUM = :certNum)",
-									Tuple.class);
-						}
+					if (cert.getCertCerttype().trim().equals("F")) {
+						queryForTempMatAuthPrintDetail = this.entityManager.createNativeQuery(
+								// "Select crtd_contbillno, cblh_contbilldt, cbld_quantity, crtd_billamount,
+								// crtd_tdsamt, crtd_advadjusted, crtd_relretamt, cert_writeoffamt,
+								// crtd_certnum, CERT_CERTTYPE, cblh_retention, cblh_retainos, cblh_ser,
+								// cblh_partycode, cblh_certnum, cblh_omsserviceyn, cert_CERTNUM, cert_PARTYCODE
+								// from certdetails, CBILLH, CBILLD, Cert where (crtd_contbillno =
+								// cblh_contbillno) and (crtd_contract = cblh_contract) and (cbld_ser =
+								// cblh_ser) and (cblh_certnum = crtd_certnum ) and (crtd_certnum =
+								// cert_certNUM) AND (cert_PARTYCODE = cblh_partycode) and (cert_certNUM =
+								// cblh_certnum) and (crtd_certnum = :certNum)",
+								// "Select '' as crtd_contbillno, null as cblh_contbilldt, 0.0 as cbld_quantity,
+								// cert_PAYAMOUNT as autd_authamount, 0 as crtd_tdsamt, 0 as crtd_advadjusted, 0
+								// as crtd_relretamt, 0 as cert_writeoffamt, '' as crtd_certnum, CERT_CERTTYPE,
+								// 0 as cblh_retention, '' as cblh_retainos, '' as cblh_ser, '' as
+								// cblh_partycode, '' as cblh_certnum, '' as cblh_omsserviceyn, cert_CERTNUM,
+								// cert_PARTYCODE from Cert where (cert_certNUM = :certNum)",
+								"Select crtd_contbillno,cblh_contbilldt,cbld_quantity,crtd_billamount,crtd_tdsamt,crtd_advadjusted,crtd_relretamt,cert_writeoffamt,crtd_certnum,CERT_CERTTYPE,cblh_retention,cblh_retainos,cblh_ser,cblh_partycode,cblh_certnum,cblh_omsserviceyn,cert_CERTNUM,cert_PARTYCODE FROM  Cert LEFT JOIN certdetails ON (crtd_certnum = cert_certnum) LEFT JOIN CBILLH ON (cblh_certnum = cert_certnum and cblh_contract = cert_contract and cblh_partycode = cert_PARTYCODE and cblh_contbillno = crtd_contbillno) LEFT JOIN CBILLD ON (cbld_ser = cblh_ser) WHERE cert_certnum = :certNum",
+								Tuple.class);
+					}
+					if (cert.getCertCerttype().trim().equals("R")) {
+						queryForTempMatAuthPrintDetail = this.entityManager.createNativeQuery(
+								// "Select crtd_contbillno, cblh_contbilldt, cbld_quantity, crtd_billamount,
+								// crtd_tdsamt, crtd_advadjusted, crtd_relretamt, cert_writeoffamt,
+								// crtd_certnum, CERT_CERTTYPE, cblh_retention, cblh_retainos, cblh_ser,
+								// cblh_partycode, cblh_certnum, cblh_omsserviceyn, cert_CERTNUM, cert_PARTYCODE
+								// from certdetails, CBILLH, CBILLD, Cert where (crtd_contbillno =
+								// cblh_contbillno) and (crtd_contract = cblh_contract) and (cbld_ser =
+								// cblh_ser) and (cblh_certnum = crtd_certnum ) and (crtd_certnum =
+								// cert_certNUM) AND (cert_PARTYCODE = cblh_partycode) and (cert_certNUM =
+								// cblh_certnum) and (crtd_certnum = :certNum)",
+								"Select crtd_contbillno,cblh_contbilldt,cbld_quantity,crtd_billamount,crtd_tdsamt,crtd_advadjusted,crtd_relretamt,cert_writeoffamt,crtd_certnum,CERT_CERTTYPE,cblh_retention,cblh_retainos,cblh_ser,cblh_partycode,cblh_certnum,cblh_omsserviceyn,cert_CERTNUM,cert_PARTYCODE FROM  Cert LEFT JOIN certdetails ON (crtd_certnum = cert_certnum) LEFT JOIN CBILLH ON (cblh_certnum = cert_certnum and cblh_contract = cert_contract and cblh_partycode = cert_PARTYCODE and cblh_contbillno = crtd_contbillno) LEFT JOIN CBILLD ON (cbld_ser = cblh_ser) WHERE cert_certnum = :certNum",
+								// "Select '' as crtd_contbillno, null as cblh_contbilldt, 0.0 as cbld_quantity,
+								// cert_PAYAMOUNT as autd_authamount, 0 as crtd_tdsamt, 0 as crtd_advadjusted, 0
+								// as crtd_relretamt, 0 as cert_writeoffamt, '' as crtd_certnum, CERT_CERTTYPE,
+								// 0 as cblh_retention, '' as cblh_retainos, '' as cblh_ser, '' as
+								// cblh_partycode, '' as cblh_certnum, '' as cblh_omsserviceyn, cert_CERTNUM,
+								// cert_PARTYCODE from Cert where (cert_certNUM = :certNum)",
+								Tuple.class);
+					}
 
 					if (cert.getCertCerttype().trim().equals("A")) {
 						queryForTempMatAuthPrintDetail = this.entityManager.createNativeQuery(
-								"Select     '' as autd_suppbillno,   null as  autd_suppbilldt,     0.0 as autd_authqty,             cert_PAYAMOUNT as autd_authamount,    0 as autd_authtdsamt,     0 as autd_advadj,              0 as autd_relretamt,     0 as autd_retentionadj,   '' as AUTD_AUTHNUM,        cert_certtype as autd_authtype,            0 as autd_retainamt,     '' as pblh_retainos,       '' as pblh_SER,                 cert_PARTYCODE as pblh_partycode,     '' as PBLH_AUTHNUM,        '' as PBLD_CESER,               cert_certNUM,       cert_PARTYCODE       from   Cert                                                  where (cert_certNUM = :certNum)",
+								"Select     '' as crtd_contbillno,   null as  cblh_contbilldt,     0.0 as cbld_quantity,            cert_PAYAMOUNT as autd_authamount,    0 as crtd_tdsamt,         0 as crtd_advadjusted,         0 as crtd_relretamt,     0 as cert_writeoffamt,  '' as crtd_certnum,        CERT_CERTTYPE,            0 as cblh_retention,     '' as cblh_retainos,     '' as  cblh_ser,            '' as     cblh_partycode,     '' as cblh_certnum,        '' as cblh_omsserviceyn,               cert_CERTNUM,       cert_PARTYCODE  from   Cert                                                  where (cert_certNUM = :certNum)",
 								Tuple.class);
 					}
 
 					queryForTempMatAuthPrintDetail.setParameter("certNum", cert.getCertCK().getCertCertnum());
 					List<Tuple> queryForTempMatAuthPrintDetailResultSetList = queryForTempMatAuthPrintDetail
 							.getResultList();
-
 					if (CollectionUtils.isNotEmpty(queryForTempMatAuthPrintDetailResultSetList)) {
 						List<CertPrintDetailBean> CertPrintDetailBeanList = queryForTempMatAuthPrintDetailResultSetList
 								.stream().map(t -> {
@@ -587,8 +771,7 @@ public class CertServiceImpl implements CertService {
 													: null)
 											.build();
 								}).collect(Collectors.toList());
-						LOGGER.info("CertPrintDetailBean List Size :: {}",
-								CertPrintDetailBeanList.size());
+						LOGGER.info("CertPrintDetailBean List Size :: {}", CertPrintDetailBeanList.size());
 						LOGGER.info("CertPrintDetailBean :: {}", CertPrintDetailBeanList);
 
 						for (CertPrintDetailBean CertPrintDetailBean : CertPrintDetailBeanList) {
@@ -619,9 +802,9 @@ public class CertServiceImpl implements CertService {
 										.autdRetainamt(CertPrintDetailBean.getAutdretainamt())
 										.autdRetentionadj(CertPrintDetailBean.getAutdretentionadj())
 										.autdSuppbilldt(CertPrintDetailBean.getAutdsuppbilldt())
-										.authAuthtype(Objects.nonNull(cert.getCertCerttype())
-												? cert.getCertCerttype().trim()
-												: null)
+										.authAuthtype(
+												Objects.nonNull(cert.getCertCerttype()) ? cert.getCertCerttype().trim()
+														: null)
 										.authAmt(certAmt).authAuthstatus(cert.getCertCertstatus()).authStat(certStatus)
 										.bldgName(buildingName.getBldgName()).certStat(certStat).cfBldg_Work(cfBldgWork)
 										.coyName(companyName.getCoyName()).Currdate(LocalDateTime.now().toLocalDate())
@@ -643,9 +826,9 @@ public class CertServiceImpl implements CertService {
 							return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 						}
 					}
-					if (cert.getCertCerttype().trim().equals("L") || cert.getCertCerttype().trim().equals("R")) {
+					if (cert.getCertCerttype().trim().equals("L") || cert.getCertCerttype().trim().equals("M")) {
 						Query queryForRAndL = this.entityManager.createNativeQuery(
-								"Select autd_suppbillno,    autd_suppbilldt,     autd_authqty,     autd_authamount,    autd_authtdsamt,     autd_advadj,      autd_relretamt,     autd_retentionadj,  AUTD_AUTHNUM,        autd_authtype,    autd_retainamt,     cert_certNUM,        cert_PARTYCODE,    (select pblh_retainos from PBILLH where PBLH_suppbillno =  autd_suppbillno and (PBLH_AUTHNUM = :certNum)) as pblh_retainos        from AUTH_D,Cert where (AUTD_AUTHNUM = cert_certNUM) and (AUTD_AUTHNUM = :certNum)",
+								"Select     crtd_contbillno,    cert_billdate,     	0,             crtd_billamount,    crtd_tdsamt,     crtd_advadjusted,              crtd_relretamt,     cert_writeoffamt ,  crtd_certnum,        CERT_CERTTYPE,            (select cblh_retention from CBILLH where CBLH_contbillno =  crtd_contbillno and (cblh_certnum = :certNum)) as cblh_retention,       cert_certNUM,                 cert_PARTYCODE,(select cblh_retainos from CBILLH where CBLH_contbillno =  crtd_contbillno and (cblh_certnum = :certNum)) as cblh_retainos        from certdetails,Cert where (crtd_certnum = cert_certNUM) and (crtd_certnum = :certNum)",
 								Tuple.class);
 						queryForRAndL.setParameter("certNum", cert.getCertCK().getCertCertnum());
 						List<Tuple> queryForRAndLResultSetList = queryForRAndL.getResultList();
@@ -737,20 +920,148 @@ public class CertServiceImpl implements CertService {
 
 									return tempMatAuthprint;
 								}).collect(Collectors.toList());// --------------------> update temp_autprint for auth
-																// type l and r
+								// type l and r
 
 							}
 
 						}
 					}
-				}
+// start of added by vicky for matcertlink
+//	                 Workcode total amount (To print on certificate copy)					
+					Query queryForTempCertprint = null;
+					queryForTempCertprint = this.entityManager.createNativeQuery(
 
-				List<Dbnoteh> dbnotehEntityList = this.dbnotehRepository
-						.findByDbnhAuthnoIn(certConditionBasedList.stream()
-								.sorted((p1, p2) -> p1.getCertCK().getCertCertnum()
-										.compareTo(p2.getCertCK().getCertCertnum()))
-								.map(name -> name.getCertCK().getCertCertnum()).collect(Collectors.toSet()));
-				LOGGER.info("dbnotehEntity :: {}", dbnotehEntityList);
+//							"SELECT Trim(mcl_code) AS WorkCode , mcl_groupcode , mcl_desc ,(SELECT ep_workname FROM epworks WHERE ep_workcode = mcl_code AND (ep_closedate is null OR (ep_closedate = '28/OCT/2015'  OR ep_closedate = '31/MAR/2016'))) AS WorkName , Nvl(sum(cert_certamount),0) AS CertAmt FROM matcertlink , cert WHERE trim(cert_bldgcode) (+) =  :StrLocBldgCode AND (cert.cert_workcode (+) = matcertlink.mcl_code) AND mcl_groupcode IN (SELECT ep_printgroup FROM epworks WHERE trim(ep_workcode) = :StrLocWorkCode AND ep_closedate IS NULL) AND mcl_type = 'W' AND trim(cert_workcode) (+) <> :StrLocWorkCode AND trim(cert_coy) (+) = :StrLocCoyCode AND cert_certtype (+) NOT IN ('A', 'L', 'M') AND cert_certstatus (+) > '4' AND cert_certstatus (+) NOT IN ('6','8') GROUP BY cert_bldgcode , mcl_code , mcl_groupcode , mcl_desc",
+							"SELECT TRIM(mcl_code) AS WorkCode, mcl_groupcode, mcl_desc, (SELECT ep_workname FROM epworks WHERE ep_workcode = mcl_code AND (ep_closedate IS NULL OR ep_closedate IN ('28/OCT/2015', '31/MAR/2016'))) AS WorkName, NVL(SUM(cert_certamount), 0) AS CertAmt FROM matcertlink LEFT JOIN cert ON TRIM(cert_bldgcode) = :StrLocBldgCode AND cert.cert_workcode = matcertlink.mcl_code LEFT JOIN epworks ON mcl_groupcode = ep_printgroup WHERE TRIM(ep_workcode) = :StrLocWorkCode AND ep_closedate IS NULL AND mcl_type = 'W' AND TRIM(cert_workcode) <> :StrLocWorkCode AND TRIM(cert_coy) = :StrLocCoyCode AND cert_certtype NOT IN ('A', 'L', 'M') AND cert_certstatus > '4' AND cert_certstatus NOT IN ('6', '8') GROUP BY cert_bldgcode, mcl_code, mcl_groupcode, mcl_desc",
+							Tuple.class);
+					queryForTempCertprint.setParameter("StrLocBldgCode", cert.getCertBldgcode().trim());
+					queryForTempCertprint.setParameter("StrLocWorkCode", cert.getCertWorkcode().trim());
+					queryForTempCertprint.setParameter("StrLocCoyCode", cert.getCertCoy().trim());
+					List<Tuple> queryForTempCertprintResultSetList = queryForTempCertprint.getResultList();
+					if (CollectionUtils.isNotEmpty(queryForTempCertprintResultSetList)) {
+						List<MatcertLinkPrintCertBean> MatcertLinkPrintCertBeanList = queryForTempCertprintResultSetList
+								.stream().map(t -> {
+									return MatcertLinkPrintCertBean.builder()
+											.tmpCode(Objects.nonNull(t.get(0, String.class))
+													? t.get(0, String.class).trim()
+													: CommonConstraints.INSTANCE.SPACE_STRING)
+											.tmpGroupcode(Objects.nonNull(t.get(1, String.class))
+													? t.get(1, String.class).trim()
+													: CommonConstraints.INSTANCE.SPACE_STRING)
+											.tmpGroupdesc(Objects.nonNull(t.get(2, String.class))
+													? t.get(2, String.class).trim()
+													: CommonConstraints.INSTANCE.SPACE_STRING)
+											.tmpCodedesc(Objects.nonNull(t.get(3, String.class))
+													? t.get(3, String.class).trim()
+													: CommonConstraints.INSTANCE.SPACE_STRING)
+											.tmpTotamt(Objects.nonNull(t.get(4, BigDecimal.class))
+													? t.get(4, BigDecimal.class).doubleValue()
+													: null)
+											.build();
+								}).collect(Collectors.toList());
+						LOGGER.info("MatcertLinkPrintCertBean List Size :: {}", MatcertLinkPrintCertBeanList.size());
+						LOGGER.info("MatcertLinkPrintCertBean :: {}", MatcertLinkPrintCertBeanList);
+
+						for (MatcertLinkPrintCertBean MatcertLinkPrintCertBean : MatcertLinkPrintCertBeanList) {
+							if (!(MatcertLinkPrintCertBean.getTmpCode().trim().equals(cert.getCertWorkcode().trim()))) {
+								tempCertprintList
+										.add(TempCertprint.builder()
+												.tempcertprintCK(TempCertprintCK.builder()
+														.tmpCertnum(cert.getCertCK().getCertCertnum()).tmpType("W")
+														.tmpCode(MatcertLinkPrintCertBean.getTmpCode())
+														.tmpSessionid(Integer.valueOf(sessionId)).build())
+												.tmpCodedesc(MatcertLinkPrintCertBean.getTmpCodedesc())
+												.tmpGroupcode(MatcertLinkPrintCertBean.getTmpGroupcode())
+												.tmpGroupdesc(MatcertLinkPrintCertBean.getTmpGroupdesc())
+												.tmpTotamt(MatcertLinkPrintCertBean.getTmpTotamt().intValue())
+												.tmpToday(LocalDateTime.now())
+												.tmpSite(GenericAuditContextHolder.getContext().getSite())
+												.tmpUserid(GenericAuditContextHolder.getContext().getUserid()).build());
+								LOGGER.info("tempCertprintList :: {} ", tempCertprintList);
+							}
+						}
+
+						if (CollectionUtils.isNotEmpty(tempCertprintList)) {
+							this.tempCertprintRepository.saveAllAndFlush(tempCertprintList);
+						} else {
+							return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+						}
+					}
+// end of added by vicky for matcertlink					
+				// start of added by vicky for matcertlink
+//                Material group total amount (To print on certificate copy)					
+				Query queryForTempCertprint1 = null;
+				queryForTempCertprint1 = this.entityManager.createNativeQuery(
+
+//						"SELECT Trim(mcl_code) AS MatCode , mcl_groupcode , mcl_desc ,(SELECT mat_matname FROM material WHERE Trim(mat_matgroup) = Trim(mcl_code) and mat_level = '1') AS MatName ,Nvl(sum(auth_authamount),0) AS AuthAmt FROM matcertlink , auth_h WHERE trim(auth_bldgcode) (+) =:StrLocBldgCode  AND (auth_matgroup (+) = matcertlink.mcl_code) AND trim(auth_coy) (+) = :StrLocCoyCode AND auth_authtype (+) not in ('A', 'L', 'C') AND auth_authstatus (+) > '4' AND auth_authstatus (+) NOT IN ('6','8') AND mcl_type = 'M' AND mcl_groupcode IN (SELECT mcl_groupcode FROM matcertlink WHERE mcl_groupcode IN ( SELECT ep_printgroup FROM epworks WHERE TRIM(ep_workcode) = :StrLocWorkCode AND ep_closedate IS NULL) AND mcl_type = 'W' AND trim(mcl_code) = :StrLocWorkCode ) GROUP BY  mcl_code , mcl_groupcode , mcl_des",
+						"SELECT TRIM(mcl_code) AS MatCode, mcl_groupcode, mcl_desc, (SELECT mat_matname FROM material WHERE TRIM(mat_matgroup) = TRIM(mcl_code) AND mat_level = '1') AS MatName, NVL(SUM(auth_authamount), 0) AS AuthAmt FROM matcertlink LEFT JOIN auth_h ON TRIM(auth_matgroup) = TRIM(matcertlink.mcl_code) WHERE TRIM(auth_bldgcode) = :StrLocBldgCode AND TRIM(auth_coy) = :StrLocCoyCode AND auth_authtype NOT IN ('A', 'L', 'C') AND auth_authstatus > '4' AND auth_authstatus NOT IN ('6', '8') AND mcl_type = 'M' AND mcl_groupcode IN (SELECT mcl_groupcode FROM matcertlink WHERE mcl_groupcode IN (SELECT ep_printgroup FROM epworks WHERE TRIM(ep_workcode) = :StrLocWorkCode AND ep_closedate IS NULL) AND mcl_type = 'W' AND TRIM(mcl_code) = :StrLocWorkCode) GROUP BY mcl_code, mcl_groupcode, mcl_desc",
+						Tuple.class);
+				queryForTempCertprint1.setParameter("StrLocBldgCode", cert.getCertBldgcode().trim());
+				queryForTempCertprint1.setParameter("StrLocWorkCode", cert.getCertWorkcode().trim());
+				queryForTempCertprint1.setParameter("StrLocCoyCode", cert.getCertCoy().trim());
+				List<Tuple> queryForTempCertprint1ResultSetList = queryForTempCertprint1.getResultList();
+				if (CollectionUtils.isNotEmpty(queryForTempCertprint1ResultSetList)) {
+					List<MatcertLinkPrintCertBean> MatcertLinkPrintCertBeanList = queryForTempCertprint1ResultSetList
+							.stream().map(t -> {
+								return MatcertLinkPrintCertBean.builder()
+										.tmpCode(Objects.nonNull(t.get(0, String.class))
+												? t.get(0, String.class).trim()
+												: CommonConstraints.INSTANCE.SPACE_STRING)
+										.tmpGroupcode(Objects.nonNull(t.get(1, String.class))
+												? t.get(1, String.class).trim()
+												: CommonConstraints.INSTANCE.SPACE_STRING)
+										.tmpGroupdesc(Objects.nonNull(t.get(2, String.class))
+												? t.get(2, String.class).trim()
+												: CommonConstraints.INSTANCE.SPACE_STRING)
+										.tmpCodedesc(Objects.nonNull(t.get(3, String.class))
+												? t.get(3, String.class).trim()
+												: CommonConstraints.INSTANCE.SPACE_STRING)
+										.tmpTotamt(Objects.nonNull(t.get(4, BigDecimal.class))
+												? t.get(4, BigDecimal.class).doubleValue()
+												: null)
+										.build();
+							}).collect(Collectors.toList());
+					LOGGER.info("MatcertLinkPrintCertBean List Size :: {}", MatcertLinkPrintCertBeanList.size());
+					LOGGER.info("MatcertLinkPrintCertBean :: {}", MatcertLinkPrintCertBeanList);
+
+					for (MatcertLinkPrintCertBean MatcertLinkPrintCertBean : MatcertLinkPrintCertBeanList) {
+							tempCertprintList
+									.add(TempCertprint.builder()
+											.tempcertprintCK(TempCertprintCK.builder()
+													.tmpCertnum(cert.getCertCK().getCertCertnum()).tmpType("W")
+													.tmpCode(MatcertLinkPrintCertBean.getTmpCode())
+													.tmpSessionid(Integer.valueOf(sessionId)).build())
+											.tmpCodedesc(MatcertLinkPrintCertBean.getTmpCodedesc())
+											.tmpGroupcode(MatcertLinkPrintCertBean.getTmpGroupcode())
+											.tmpGroupdesc(MatcertLinkPrintCertBean.getTmpGroupdesc())
+											.tmpTotamt(MatcertLinkPrintCertBean.getTmpTotamt().intValue())
+											.tmpToday(LocalDateTime.now())
+											.tmpSite(GenericAuditContextHolder.getContext().getSite())
+											.tmpUserid(GenericAuditContextHolder.getContext().getUserid()).build());
+							LOGGER.info("tempCertprintList :: {} ", tempCertprintList);
+					}
+
+					if (CollectionUtils.isNotEmpty(tempCertprintList)) {
+						this.tempCertprintRepository.saveAllAndFlush(tempCertprintList);
+					} else {
+						return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+					}
+				}
+//end of added by vicky for matcertlink					
+			}
+
+				// List<Dbnoteh> dbnotehEntityList = this.dbnotehRepository
+				// .findByDbnhAuthnoIn(certConditionBasedList.stream()
+				// .sorted((p1, p2) -> p1.getCertCK().getCertCertnum()
+				// .compareTo(p2.getCertCK().getCertCertnum()))
+				// .map(name -> name.getCertCK().getCertCertnum()).collect(Collectors.toSet()));
+				// LOGGER.info("dbnotehEntity :: {}", dbnotehEntityList);
+
+				List<Cdbnoteh> cdbnotehEntityList = this.cdbnotehRepository.findByCdbnhCertnoIn(certConditionBasedList
+						.stream()
+						.sorted((p1, p2) -> p1.getCertCK().getCertCertnum().compareTo(p2.getCertCK().getCertCertnum()))
+						.map(name -> name.getCertCK().getCertCertnum()).collect(Collectors.toSet()));
+				LOGGER.info("cdbnotehEntity :: {}", cdbnotehEntityList);
 
 				return ResponseEntity.ok(ServiceResponseBean.builder().status(Boolean.TRUE)
 						.data(CertPrintDetailResponseBean.builder().sessionId(sessionId)
@@ -758,15 +1069,16 @@ public class CertServiceImpl implements CertService {
 										.sorted((p1, p2) -> p1.getCertCK().getCertCertnum()
 												.compareTo(p2.getCertCK().getCertCertnum()))
 										.map(name -> name.getCertCK().getCertCertnum()).findFirst().get())
-								.authNumberTo(certConditionBasedList.stream()
-										.sorted((p1, p2) -> p2.getCertCK().getCertCertnum()
-												.compareTo(p1.getCertCK().getCertCertnum()))
-										.map(name -> name.getCertCK().getCertCertnum()).findFirst().get())
-								.serList(CollectionUtils.isNotEmpty(dbnotehEntityList) ? dbnotehEntityList.stream()
-										.sorted((p1, p2) -> p2.getDbnotehCK().getDbnhDbnoteser()
-												.compareTo(p1.getDbnotehCK().getDbnhDbnoteser()))
-										.collect(Collectors.toMap(db -> db.getDbnotehCK().getDbnhDbnoteser(),
-												Dbnoteh::getDbnhAuthno))
+								.authNumberTo(
+										certConditionBasedList.stream()
+												.sorted((p1, p2) -> p2.getCertCK().getCertCertnum()
+														.compareTo(p1.getCertCK().getCertCertnum()))
+												.map(name -> name.getCertCK().getCertCertnum()).findFirst().get())
+								.serList(CollectionUtils.isNotEmpty(cdbnotehEntityList) ? cdbnotehEntityList.stream()
+										.sorted((p1, p2) -> p2.getCdbnotehCK().getCdbnhDbnoteser()
+												.compareTo(p1.getCdbnotehCK().getCdbnhDbnoteser()))
+										.collect(Collectors.toMap(db -> db.getCdbnotehCK().getCdbnhDbnoteser(),
+												Cdbnoteh::getCdbnhCertno))
 										: null)
 								.authNumList(certConditionBasedList.stream()
 										.sorted((p1, p2) -> p1.getCertCK().getCertCertnum()
@@ -801,19 +1113,20 @@ public class CertServiceImpl implements CertService {
 
 					// Make the Feign client request
 					byte[] ogByteArray = this.reportInternalFeignClient.generateReportWithMultipleConditionAndParameter(
-							ReportMasterRequestBean.builder().name("Engg_RP_CertificatePrint.rpt")
+							ReportMasterRequestBean.builder().name("Engg_RP_CertificatePrint_java.rpt")
 									.reportParameters(map).seqId(1).isPrint(false).build());
 
-					byte[] duplicateByteArray = this.reportInternalFeignClient
-							.generateReportWithMultipleConditionAndParameter(
-									ReportMasterRequestBean.builder().name("Engg_RP_CertificatePrint_copy.rpt")
-											.reportParameters(map).seqId(1).isPrint(false).build());
+					// byte[] duplicateByteArray = this.reportInternalFeignClient
+					// .generateReportWithMultipleConditionAndParameter(
+					// ReportMasterRequestBean.builder().name("Engg_RP_CertificatePrint_java_copy.rpt")
+					// .reportParameters(map).seqId(1).isPrint(false).build());
 
 					// GENERATE REPORT OG AND DUPLICATE
 					String ogRandomUUID = CommonUtils.INSTANCE.uniqueIdentifier(certNum.concat("OG"));
 					String ogReportLocation = reportJobPath.concat(ogRandomUUID).concat(".pdf");
 					String duplicateRandomUUID = CommonUtils.INSTANCE.uniqueIdentifier(certNum.concat("DUPLICATE"));
-					String duplicateReportLocation = reportJobPath.concat(duplicateRandomUUID).concat(".pdf");
+					// String duplicateReportLocation =
+					// reportJobPath.concat(duplicateRandomUUID).concat(".pdf");
 
 					try (FileOutputStream fos = new FileOutputStream(ogReportLocation)) {
 						fos.write(ogByteArray);
@@ -822,43 +1135,40 @@ public class CertServiceImpl implements CertService {
 						e.printStackTrace();
 					}
 
-					try (FileOutputStream fos = new FileOutputStream(duplicateReportLocation)) {
-						fos.write(duplicateByteArray);
-						finalReportLocationList.add(duplicateReportLocation);
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
+					// try (FileOutputStream fos = new FileOutputStream(duplicateReportLocation)) {
+					// fos.write(duplicateByteArray);
+					// finalReportLocationList.add(duplicateReportLocation);
+					// } catch (IOException e) {
+					// e.printStackTrace();
+					// }
 					if (certPrintDetailResponseBean.getSerList() != null
 							&& !certPrintDetailResponseBean.getSerList().isEmpty()) {
-						for (Map.Entry<String, String> entry : certPrintDetailResponseBean.getSerList()
-								.entrySet()) {
+						for (Map.Entry<String, String> entry : certPrintDetailResponseBean.getSerList().entrySet()) {
 							if (certNum.equals(entry.getValue())) {
-								Map<String, Object> debitNoteParamMap = new HashMap<String, Object>();
+								Map<String, Object> cdebitNoteParamMap = new HashMap<String, Object>();
 								// debitNoteParamMap.put("sessid",certPrintDetailResponseBean.getSessionId());
-								debitNoteParamMap.put("serFrom", entry.getKey());
-								debitNoteParamMap.put("serTo", entry.getKey());
+								cdebitNoteParamMap.put("serFrom", entry.getKey());
+								cdebitNoteParamMap.put("serTo", entry.getKey());
 
-								
-								
-//								byte[] debitNoteByteArray = this.reportInternalFeignClient
-//										.generateReportWithMultipleConditionAndParameter(ReportMasterRequestBean
-//												.builder().name("Engg_RP_ContractDebitNotePrint.rpt")
-//												.reportParameters(debitNoteParamMap).seqId(1).isPrint(false).build());
+								// byte[] debitNoteByteArray = this.reportInternalFeignClient
+								// .generateReportWithMultipleConditionAndParameter(ReportMasterRequestBean
+								// .builder().name("Engg_RP_ContractDebitNotePrint.rpt")
+								// .reportParameters(cdebitNoteParamMap).seqId(1).isPrint(false).build());
 
-								byte[] debitNoteByteArray = this.reportInternalFeignClient
+								byte[] cdebitNoteByteArray = this.reportInternalFeignClient
 										.generateReportWithMultipleConditionAndParameter(ReportMasterRequestBean
-												.builder().name("MaterialPymt_Auth_DB_Print_1_New.rpt")
-												.reportParameters(debitNoteParamMap).seqId(1).isPrint(false).build());
-								for (int i = 0; i < 3; i++) {
-									String debitNoteRandomUUID = CommonUtils.INSTANCE
+												.builder().name("Engg_RP_ContractDebitNotePrint.rpt")
+												.reportParameters(cdebitNoteParamMap).seqId(1).isPrint(false).build());
+								for (int i = 0; i < 1; i++) {
+									String cdebitNoteRandomUUID = CommonUtils.INSTANCE
 											.uniqueIdentifier(certNum.concat("DebitNote"));
-									String debitNoteReportLocation = reportJobPath.concat(debitNoteRandomUUID)
+									String cdebitNoteReportLocation = reportJobPath.concat(cdebitNoteRandomUUID)
 											.concat(".pdf");
 
 									try (FileOutputStream debitNoteFos = new FileOutputStream(
-											debitNoteReportLocation)) {
-										debitNoteFos.write(debitNoteByteArray);
-										finalReportLocationList.add(debitNoteReportLocation);
+											cdebitNoteReportLocation)) {
+										debitNoteFos.write(cdebitNoteByteArray);
+										finalReportLocationList.add(cdebitNoteReportLocation);
 									} catch (IOException e) {
 										e.printStackTrace();
 									}
@@ -892,9 +1202,10 @@ public class CertServiceImpl implements CertService {
 				deleteFiles(finalReportLocationList);
 
 				return ResponseEntity.ok()
-						.header(HttpHeaders.CONTENT_DISPOSITION, CommonConstraints.INSTANCE.ATTACHMENT_FILENAME_STRING
-								.concat(certPrintDetailResponseBean.getAuthNumberFrom().concat("-")
-										.concat(certPrintDetailResponseBean.getAuthNumberTo()).concat(".pdf")))
+						.header(HttpHeaders.CONTENT_DISPOSITION,
+								CommonConstraints.INSTANCE.ATTACHMENT_FILENAME_STRING
+										.concat(certPrintDetailResponseBean.getAuthNumberFrom().concat("-")
+												.concat(certPrintDetailResponseBean.getAuthNumberTo()).concat(".pdf")))
 						.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM_VALUE)
 						.body(new InputStreamResource(new FileInputStream(file)));
 			}
@@ -905,11 +1216,12 @@ public class CertServiceImpl implements CertService {
 	}
 
 	@Override
-	public ResponseEntity<?> updateCertPrintStatus(CertPrintStatusUpdateDetailRequestBean printStatusUpdateDetailRequestBean) {
+	public ResponseEntity<?> updateCertPrintStatus(
+			CertPrintStatusUpdateDetailRequestBean printStatusUpdateDetailRequestBean) {
 		List<TempMatAuthprint> tempMatAuthprintEntityList = this.tempMatAuthprintRepository
 				.findByTempmatauthprintCK_Sessid(Double.valueOf(printStatusUpdateDetailRequestBean.getSessionId()));
 		LOGGER.info("tempMatAuthprintEntityList :: {}", tempMatAuthprintEntityList);
-		List<Dbnoteh> dbnotehEntityList = null;
+		List<Cdbnoteh> cdbnotehEntityList = null;
 
 		if (CollectionUtils.isNotEmpty(tempMatAuthprintEntityList)) {
 			List<Cert> certEntityList = this.certRepository
@@ -919,9 +1231,9 @@ public class CertServiceImpl implements CertService {
 			LOGGER.info("certEntityList :: {}", certEntityList);
 
 			if (Objects.nonNull(printStatusUpdateDetailRequestBean.getSerList())) {
-				dbnotehEntityList = this.dbnotehRepository
-						.findByDbnotehCK_DbnhDbnoteserIn(printStatusUpdateDetailRequestBean.getSerList());
-				LOGGER.info("dbnotehEntityList :: {}", dbnotehEntityList);
+				cdbnotehEntityList = this.cdbnotehRepository
+						.findByCdbnhCertnoIn(printStatusUpdateDetailRequestBean.getSerList());
+				LOGGER.info("cdbnotehEntityList :: {}", cdbnotehEntityList);
 			}
 			if (CollectionUtils.isNotEmpty(certEntityList)) {
 				for (TempMatAuthprint tempMatAuthprintEntity : tempMatAuthprintEntityList) {
@@ -940,22 +1252,22 @@ public class CertServiceImpl implements CertService {
 							this.certRepository.save(certEntity);
 						}
 					}
-					if (CollectionUtils.isNotEmpty(dbnotehEntityList)) {
-						for (Dbnoteh dbnotehEntity : dbnotehEntityList) {
+					if (CollectionUtils.isNotEmpty(cdbnotehEntityList)) {
+						for (Cdbnoteh cdbnotehEntity : cdbnotehEntityList) {
 							if (tempMatAuthprintEntity.getTempmatauthprintCK().getAutdSuppbillno().trim()
-									.equals(dbnotehEntity.getDbnhSuppbillno().trim())) {
-								dbnotehEntity.setDbnhNoofprint(Objects.nonNull(tempMatAuthprintEntity.getNoOf_Print())
-										? Double.valueOf(tempMatAuthprintEntity.getNoOf_Print())
+									.equals(cdbnotehEntity.getCdbnhContbillno().trim())) {
+								cdbnotehEntity.setCdbnhNoofprint(Objects.nonNull(tempMatAuthprintEntity.getNoOf_Print())
+										? Integer.valueOf(tempMatAuthprintEntity.getNoOf_Print())
 										: null);
-								dbnotehEntity.setDbnhPrints(Objects.nonNull(tempMatAuthprintEntity.getNoOf_Print())
-										? Double.valueOf(tempMatAuthprintEntity.getNoOf_Print())
+								cdbnotehEntity.setCdbnhPrints(Objects.nonNull(tempMatAuthprintEntity.getNoOf_Print())
+										? Integer.valueOf(tempMatAuthprintEntity.getNoOf_Print())
 										: null);
-								dbnotehEntity.setDbnhPrintdate(LocalDateTime.now());
-								dbnotehEntity.setDbnhSite(GenericAuditContextHolder.getContext().getSite());
-								dbnotehEntity.setDbnhUserid(GenericAuditContextHolder.getContext().getUserid());
-								dbnotehEntity.setDbnhPrintuser(GenericAuditContextHolder.getContext().getUserid());
-								dbnotehEntity.setDbnhToday(LocalDateTime.now());
-								this.dbnotehRepository.save(dbnotehEntity);
+								cdbnotehEntity.setCdbnhPrintdate(LocalDate.now());
+								cdbnotehEntity.setCdbnhSite(GenericAuditContextHolder.getContext().getSite());
+								cdbnotehEntity.setCdbnhUserid(GenericAuditContextHolder.getContext().getUserid());
+								cdbnotehEntity.setCdbnhPrintuser(GenericAuditContextHolder.getContext().getUserid());
+								cdbnotehEntity.setCdbnhToday(LocalDateTime.now());
+								this.cdbnotehRepository.save(cdbnotehEntity);
 							}
 						}
 					}
@@ -974,6 +1286,13 @@ public class CertServiceImpl implements CertService {
 
 	@Override
 	public ResponseEntity<?> deleteTempTableFromSessionId(Integer sessionId) {
+		List<TempCertprint> tempCertprintEntityList = this.tempCertprintRepository
+				.findByTempcertprintCK_TmpSessionid(Integer.valueOf(sessionId));
+		LOGGER.info("tempCertprintEntityList :: {}", tempCertprintEntityList);
+
+		if (CollectionUtils.isNotEmpty(tempCertprintEntityList)) {
+			this.tempCertprintRepository.deleteByTmpSessionid(Integer.valueOf(sessionId));
+		}
 		List<TempMatAuthprint> tempMatAuthprintEntityList = this.tempMatAuthprintRepository
 				.findByTempmatauthprintCK_Sessid(Double.valueOf(sessionId));
 		LOGGER.info("tempMatAuthprintEntityList :: {}", tempMatAuthprintEntityList);
@@ -981,7 +1300,9 @@ public class CertServiceImpl implements CertService {
 		if (CollectionUtils.isNotEmpty(tempMatAuthprintEntityList)) {
 			this.tempMatAuthprintRepository.deleteBySessid(Double.valueOf(sessionId));
 			return ResponseEntity.ok(ServiceResponseBean.builder().status(Boolean.TRUE).build());
+
 		}
+
 		return ResponseEntity
 				.ok(ServiceResponseBean.builder().status(Boolean.FALSE).message("No Record Found").build());
 	}

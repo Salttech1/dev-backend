@@ -3411,11 +3411,22 @@ public class MaterialPaymentsServiceImpl implements MaterialPaymentsService {
 					}).collect(Collectors.toList()));
 			LOGGER.info("authHEntityList :: {}", authHEntityList);
 
+//start of commented by vicky on 20240311			
+//			if (Objects.nonNull(printStatusUpdateDetailRequestBean.getSerList())) {
+//				dbnotehEntityList = this.dbnotehRepository
+//						.findByDbnotehCK_DbnhDbnoteserIn(printStatusUpdateDetailRequestBean.getSerList());
+//				LOGGER.info("dbnotehEntityList :: {}", dbnotehEntityList);
+//			}
+//end of commented by vicky on 20240311			
+//start of added by vicky on 20240311			
+
 			if (Objects.nonNull(printStatusUpdateDetailRequestBean.getSerList())) {
 				dbnotehEntityList = this.dbnotehRepository
-						.findByDbnotehCK_DbnhDbnoteserIn(printStatusUpdateDetailRequestBean.getSerList());
+						.findByDbnhAuthnoIn(printStatusUpdateDetailRequestBean.getSerList());
 				LOGGER.info("dbnotehEntityList :: {}", dbnotehEntityList);
 			}
+//end of added by vicky on 20240311			
+			
 			if (CollectionUtils.isNotEmpty(authHEntityList)) {
 				for (TempMatAuthprint tempMatAuthprintEntity : tempMatAuthprintEntityList) {
 					for (Auth_H authHEntity : authHEntityList) {

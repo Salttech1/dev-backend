@@ -31,9 +31,8 @@ import kraheja.payload.GenericResponse;
 import kraheja.purch.entity.Matcertlnhdr;
 import kraheja.purch.entity.MatcertlnhdrCK;
 import kraheja.purch.repository.MatcertlnhdrRepository;
-import lombok.extern.log4j.Log4j2;
 
-@Log4j2
+
 @Service
 @Transactional
 public class LogicNoteServiceImpl implements LogicNoteService {

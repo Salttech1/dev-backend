@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import kraheja.adminexp.billing.dataentry.adminBill.bean.request.AdminBillRequestBean;
 import kraheja.adminexp.billing.dataentry.adminBill.bean.request.FetchAdminBillRequestBean;
+import kraheja.adminexp.billing.dataentry.adminBill.bean.request.FetchPartyAlreadyExistsRequest;
+import kraheja.adminexp.billing.dataentry.adminBill.bean.request.TdsRequest;
 import kraheja.adminexp.billing.dataentry.adminBill.bean.response.AdminBillResponseBean;
 import kraheja.adminexp.billing.dataentry.adminBill.bean.response.GenericResponse;
 import kraheja.adminexp.billing.dataentry.adminBill.bean.response.PartyIsLegalOrSecurityResponseBean;
@@ -58,5 +60,15 @@ public class AdmbillEntryController {
 			@RequestParam(value = "stateCode") String stateCode,@RequestParam(value = "buildingCode") String buildingCode) {
 		return this.admbillhService.fetchHsnData(hsnCode, suppbillDate, partyCode, stateCode,  buildingCode);
 	}
+	
+	@PostMapping("/fetch-tds-percentage")
+	public GenericResponse<Double> fetchTdsPercentage( @RequestBody TdsRequest tdsRequest) {
+		return this.admbillhService.fetchTdsPercentage(tdsRequest);		
+		}
+	
+	@PostMapping("/fetch-bill-exists")
+	public GenericResponse<Boolean> fetchBillExists( @RequestBody FetchPartyAlreadyExistsRequest fetchPartyAlreadyExistsRequest) {
+		return this.admbillhService.fetchPartyAlreadyExistsForPeriod(fetchPartyAlreadyExistsRequest);		
+		}
 	
 }

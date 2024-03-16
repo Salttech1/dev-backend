@@ -290,6 +290,8 @@ public class AdmexphServiceImpl implements AdmexphService {
 
 
 		//			for getting sum in the grid
+//		BigDecimal bd = new BigDecimal(billamount).setScale(2, RoundingMode.HALF_UP);  
+//		billamount = bd.doubleValue();
 		Double sumOfBillAmt = admexphRequestBean.getAdmexpdRequestBean().parallelStream().mapToDouble(AdmexpdRequestBean::getBillamount).sum();
 		Double sumOfTaxableAmt = admexphRequestBean.getAdmexpdRequestBean().parallelStream().mapToDouble(AdmexpdRequestBean::getTds).sum();
 		Double sumOfCgstAmt = admexphRequestBean.getAdmexpdRequestBean().parallelStream().mapToDouble(AdmexpdRequestBean::getCgst).sum();
@@ -298,6 +300,19 @@ public class AdmexphServiceImpl implements AdmexphService {
 		Double sumOfUgstAmt = admexphRequestBean.getAdmexpdRequestBean().parallelStream().mapToDouble(AdmexpdRequestBean::getUgst).sum();
 		String reffrom = admexphRequestBean.getAdmexpdRequestBean().get(0).getDurationfrom();
 		String refto = admexphRequestBean.getAdmexpdRequestBean().get(0).getDurationupto();
+		
+		BigDecimal bdsumOfBillAmt = new BigDecimal(sumOfBillAmt).setScale(2, RoundingMode.HALF_UP);
+		sumOfBillAmt = bdsumOfBillAmt.doubleValue();
+		BigDecimal bdsumOfTaxableAmt = new BigDecimal(sumOfTaxableAmt).setScale(2, RoundingMode.HALF_UP);
+		sumOfTaxableAmt = bdsumOfTaxableAmt.doubleValue();
+		BigDecimal bdsumOfCgstAmt = new BigDecimal(sumOfCgstAmt).setScale(2, RoundingMode.HALF_UP);
+		sumOfCgstAmt = bdsumOfCgstAmt.doubleValue();
+		BigDecimal bdsumOfSgstAmt = new BigDecimal(sumOfSgstAmt).setScale(2, RoundingMode.HALF_UP);
+		sumOfSgstAmt = bdsumOfSgstAmt.doubleValue();
+		BigDecimal bdsumOfIgstAmt = new BigDecimal(sumOfIgstAmt).setScale(2, RoundingMode.HALF_UP);
+		sumOfIgstAmt = bdsumOfIgstAmt.doubleValue();
+		BigDecimal bdsumOfUgstAmt = new BigDecimal(sumOfUgstAmt).setScale(2, RoundingMode.HALF_UP);
+		sumOfUgstAmt = bdsumOfUgstAmt.doubleValue();
 		
 		Integer bunumCounter = BigInteger.ZERO.intValue();
 		//BREAKUP 1

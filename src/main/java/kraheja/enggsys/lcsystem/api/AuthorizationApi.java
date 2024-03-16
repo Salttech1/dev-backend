@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import kraheja.enggsys.lcsystem.payload.db.SupplierDBResponse;
 import kraheja.enggsys.lcsystem.payload.request.AuthorizationRequest;
+import kraheja.enggsys.lcsystem.payload.response.AuthorizationResponse;
 import kraheja.enggsys.lcsystem.service.AuthorizationService;
 import kraheja.payload.GenericResponse;
 import lombok.extern.log4j.Log4j2;
@@ -74,6 +75,13 @@ public class AuthorizationApi {
 				authnum);
 		log.debug("post/response/authorization/create-lc-authorization: {}", response);
 
+		return ResponseEntity.ok(response);
+	}
+	@GetMapping("/retrieve-last-lc-authorization")
+	public ResponseEntity<AuthorizationResponse> retrieveLastCertficateNo(@RequestParam String supplier,
+			@RequestParam String building, @RequestParam String authType) {
+		String lastauthNumber = authorizationService.fetchlastauthNumber(supplier,building,authType);
+		AuthorizationResponse response = AuthorizationResponse.builder().authNum(lastauthNumber).build();
 		return ResponseEntity.ok(response);
 	}
 }

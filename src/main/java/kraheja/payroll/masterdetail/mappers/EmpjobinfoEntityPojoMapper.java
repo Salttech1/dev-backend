@@ -81,6 +81,7 @@ return EmpjobinfoResponseBean.builder()
 					.region(empjobinfoEntity.getEjinRegion())
 					.remark(empjobinfoEntity.getEjinRemark())
 					.reportingto(empjobinfoEntity.getEjinReportingto())
+					.resignationdate(Objects.nonNull(empjobinfoEntity.getEjinResignationdate()) ? empjobinfoEntity.getEjinResignationdate().format(CommonConstraints.INSTANCE.DDMMYYYY_FORMATTER): null)
 					.salarygrpcode(empjobinfoEntity.getEjinSalarygrpcode())
 					.section(empjobinfoEntity.getEjinSection())
 					.settlementdate(Objects.nonNull(empjobinfoEntity.getEjinSettlementdate()) ? empjobinfoEntity.getEjinSettlementdate().format(CommonConstraints.INSTANCE.DDMMYYYY_FORMATTER): null)
@@ -149,6 +150,7 @@ return Empjobinfo.builder().empjobinfoCK(EmpjobinfoCK.builder()
 				.ejinRegion(empjobinfoRequestBean.getRegion())
 				.ejinRemark(empjobinfoRequestBean.getRemark())
 				.ejinReportingto(empjobinfoRequestBean.getReportingto())
+				.ejinResignationdate(Objects.nonNull(empjobinfoRequestBean.getResignationdate()) ? LocalDate.parse(empjobinfoRequestBean.getResignationdate(), CommonConstraints.INSTANCE.DDMMYYYY_FORMATTER): null)
 				.ejinSalarygrpcode(empjobinfoRequestBean.getSalarygrpcode())
 				.ejinSection(empjobinfoRequestBean.getSection())
 				.ejinSettlementdate(Objects.nonNull(empjobinfoRequestBean.getSettlementdate()) ? LocalDate.parse(empjobinfoRequestBean.getSettlementdate(), CommonConstraints.INSTANCE.DDMMYYYY_FORMATTER): null)
@@ -283,6 +285,7 @@ return Empjobinfo.builder().empjobinfoCK(EmpjobinfoCK.builder()
 		empjobinfoEntity.setEjinRegion(Objects.nonNull(empjobinfoRequestBean.getRegion()) ? empjobinfoRequestBean.getRegion().trim() : empjobinfoEntity.getEjinRegion());
 		empjobinfoEntity.setEjinRemark(Objects.nonNull(empjobinfoRequestBean.getRemark()) ? empjobinfoRequestBean.getRemark().trim() : empjobinfoEntity.getEjinRemark());
 		empjobinfoEntity.setEjinReportingto(Objects.nonNull(empjobinfoRequestBean.getReportingto()) ? empjobinfoRequestBean.getReportingto().trim() : empjobinfoEntity.getEjinReportingto());
+		empjobinfoEntity.setEjinResignationdate(Objects.nonNull(empjobinfoRequestBean.getResignationdate()) ? LocalDate.parse(empjobinfoRequestBean.getResignationdate(), CommonConstraints.INSTANCE.DDMMYYYY_FORMATTER) : empjobinfoEntity.getEjinResignationdate());
 		empjobinfoEntity.setEjinSalarygrpcode(Objects.nonNull(empjobinfoRequestBean.getSalarygrpcode()) ? empjobinfoRequestBean.getSalarygrpcode().trim() : empjobinfoEntity.getEjinSalarygrpcode());
 		empjobinfoEntity.setEjinSection(Objects.nonNull(empjobinfoRequestBean.getSection()) ? empjobinfoRequestBean.getSection().trim() : empjobinfoEntity.getEjinSection());
 		empjobinfoEntity.setEjinSettlementdate(Objects.nonNull(empjobinfoRequestBean.getSettlementdate()) ? LocalDate.parse(empjobinfoRequestBean.getSettlementdate(), CommonConstraints.INSTANCE.DDMMYYYY_FORMATTER) : empjobinfoEntity.getEjinSettlementdate());

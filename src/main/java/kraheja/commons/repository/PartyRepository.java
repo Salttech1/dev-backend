@@ -41,4 +41,6 @@ public interface PartyRepository extends JpaRepository<Party, PartyCK>, CrudRepo
 	@Query("select e from Party e WHERE trim(e.partyCk.parPartycode) = :partyCode AND  e.partyCk.parPartytype =:partyType")
 	Party findByPartyCodeAndPartytype(String partyCode, String partyType);
 	
+	 @Query(value = "SELECT TRIM(par_partyname) AS par_partyname FROM party WHERE trim(par_partyname) LIKE :startingCharacter% AND (par_closedate = '01/JAN/2050' OR par_closedate IS NULL)", nativeQuery = true)	
+	 List<String> findByPartyCk_ParClosedate(String startingCharacter);
 }

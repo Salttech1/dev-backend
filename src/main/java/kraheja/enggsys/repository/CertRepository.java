@@ -62,7 +62,9 @@ public interface CertRepository extends JpaRepository<Cert, CertCK> {
 	Cert fetchByContractIdAndCertTypeNotAndPassedOn(String contract,String certType,LocalDate passedOn); 
 
 	// Not added one condition auth_num like '%' I think it is not required
-	List<Cert> findByCertPrintedonAndCertUserid(LocalDate printedon, String userid);
+	@Query(value = "select * from cert where cert_printedon IS null and trim(cert_userid) =?", nativeQuery =true)
+//	List<Cert> findByCertPrintedonAndCertUserid(LocalDate printedon, String userid);
+	List<Cert> findByCertPrintedonISNULLAndCertUserid(String userid);
 	
 	@Query("SELECT e FROM Cert e WHERE TRIM(e.certCK.certCertnum) IN :authNumList")
 	List<Cert> findByCertCK_CertCertnumIn(List<String> authNumList);

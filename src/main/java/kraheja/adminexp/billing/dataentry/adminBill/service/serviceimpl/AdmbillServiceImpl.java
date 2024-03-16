@@ -18,6 +18,8 @@ import kraheja.adminexp.billing.dataentry.adminAdvancePayment.repository.Admadva
 import kraheja.adminexp.billing.dataentry.adminBill.bean.request.AdmbilldRequestBean;
 import kraheja.adminexp.billing.dataentry.adminBill.bean.request.AdminBillRequestBean;
 import kraheja.adminexp.billing.dataentry.adminBill.bean.request.FetchAdminBillRequestBean;
+import kraheja.adminexp.billing.dataentry.adminBill.bean.request.FetchPartyAlreadyExistsRequest;
+import kraheja.adminexp.billing.dataentry.adminBill.bean.request.TdsRequest;
 import kraheja.adminexp.billing.dataentry.adminBill.bean.response.AdminBillResponseBean;
 import kraheja.adminexp.billing.dataentry.adminBill.bean.response.GenericResponse;
 import kraheja.adminexp.billing.dataentry.adminBill.bean.response.PartyIsLegalOrSecurityResponseBean;
@@ -28,6 +30,7 @@ import kraheja.adminexp.billing.dataentry.adminBill.mappers.AdmbilldEntityPojoMa
 import kraheja.adminexp.billing.dataentry.adminBill.mappers.AdmbillhEntityPojoMapper;
 import kraheja.adminexp.billing.dataentry.adminBill.repository.AdmbilldRepository;
 import kraheja.adminexp.billing.dataentry.adminBill.repository.AdmbillhRepository;
+import kraheja.adminexp.billing.dataentry.adminBill.repository.ReferRepository;
 import kraheja.adminexp.billing.dataentry.adminBill.service.AdmbillEntryService;
 import kraheja.arch.projbldg.dataentry.entity.Building;
 import kraheja.arch.projbldg.dataentry.repository.BuildingRepository;
@@ -75,6 +78,7 @@ public class AdmbillServiceImpl implements AdmbillEntryService {
 	private final CompanyRepository companyRepository;
 	private final GlchartRepository glchartRepository;
 	private final HsnsacmasterRepository hsnsacmasterRepository;
+	private final ReferRepository referRepository;
 
 	public AdmbillServiceImpl(AdmbillhRepository admbillhRepository, AdmadvanceRepository1 admadvanceRepository,
 			GenericAccountingLogic genericAccountingLogic, AdmbilldRepository admbilldRepository,
@@ -82,7 +86,7 @@ public class AdmbillServiceImpl implements AdmbillEntryService {
 			ActrandRepository actrandRepository, DetnarrRepository detnarrRepository,
 			BuildingRepository buildingRepository, EntityRepository entityRepository,
 			CompanyRepository companyRepository, GlchartRepository glchartRepository,
-			HsnsacmasterRepository hsnsacmasterRepository) {
+			HsnsacmasterRepository hsnsacmasterRepository, ReferRepository referRepository) {
 		this.admbillhRepository = admbillhRepository;
 		this.admadvanceRepository = admadvanceRepository;
 		this.genericAccountingLogic = genericAccountingLogic;
@@ -97,6 +101,8 @@ public class AdmbillServiceImpl implements AdmbillEntryService {
 		this.companyRepository = companyRepository;
 		this.glchartRepository = glchartRepository;
 		this.hsnsacmasterRepository = hsnsacmasterRepository;
+		this.referRepository = referRepository;
+
 	}
 
 	@Override
@@ -113,7 +119,7 @@ public class AdmbillServiceImpl implements AdmbillEntryService {
 					.findByAddressCK_AdrAdownerAndAddressCK_AdrAdsegmentAndAddressCK_AdrAdtypeAndAddressCK_AdrAdser(
 							admbillhEntity.getAdblhPartycode().trim(), CommonConstraints.INSTANCE.adrAdsegment,
 							CommonConstraints.INSTANCE.addresstype, CommonConstraints.INSTANCE.adrAdser);
-			
+
 			String stateName = "";
 			String stateCode = "";
 
@@ -132,7 +138,7 @@ public class AdmbillServiceImpl implements AdmbillEntryService {
 
 				}
 			}
-			
+
 			log.info("Address :: {}", addressEntity);
 
 			Building building = buildingRepository.findByBuildingCK_BldgCode(admbillhEntity.getAdblhBldgcode().trim());
@@ -156,8 +162,8 @@ public class AdmbillServiceImpl implements AdmbillEntryService {
 			List<Actrand> actrand = actrandRepository.findByActdTranser(ser);
 
 			AdminBillResponseBean adminBillResponseBean = AdminBillResponseBean.builder().admbilld(admbilldEntityList)
-					.admbillh(admbillhEntity).gstNo(partyEntity.getParGstno()).stateCode(stateCode)
-					.stateName(stateName).totPaidAdvance(totPaidAdvn).adjustedAdvn(adjustedAdvn)
+					.admbillh(admbillhEntity).gstNo(partyEntity.getParGstno()).stateCode(stateCode).stateName(stateName)
+					.totPaidAdvance(totPaidAdvn).adjustedAdvn(adjustedAdvn)
 					.docParCode(actrand.get(0).getActdDocparcode()).docParType(actrand.get(0).getActdDocpartype())
 					.refPartyDesc(partyEntity.getParPartyname()).bldgDesc(building.getBldgName()).build();
 			log.info("adminBillResponseBean", adminBillResponseBean);
@@ -199,7 +205,7 @@ public class AdmbillServiceImpl implements AdmbillEntryService {
 			log.info("DecLocAdjustedAdvn", adjustedAdvn);
 
 			String stateName = "";
-			String stateCode = " ";
+			String stateCode = "";
 
 			if (Objects.nonNull(addressEntity)) {
 				if (Objects.isNull(addressEntity.getAdrState())) {
@@ -222,6 +228,12 @@ public class AdmbillServiceImpl implements AdmbillEntryService {
 			Boolean isPartyLimited = false;
 			String partyName = partyEntity.getParPartyname().trim();
 
+			Company companyEntity = companyRepository.findByCompanyCK_CoyCodeAndCompanyCK_CoyClosedate(
+					fetchAdminBillRequestBean.getCompanyCode().trim(), CommonUtils.INSTANCE.closeDate());
+
+			String companyGstNo = Objects.isNull(companyEntity) ? ""
+					: Objects.isNull(companyEntity.getCoyGstno()) ? "" : companyEntity.getCoyGstno();
+
 			if (partyName.toUpperCase().contains("LTD") || partyName.toUpperCase().contains("LIMITED")) {
 				isPartyLimited = true;
 			}
@@ -233,6 +245,7 @@ public class AdmbillServiceImpl implements AdmbillEntryService {
 			keyValueMap.put("totPaidAdvance", totPaidAdvn);
 			keyValueMap.put("adjustedAdvn", adjustedAdvn);
 			keyValueMap.put("isPartyLimited", isPartyLimited);
+			keyValueMap.put("companyGstNo", companyGstNo);
 
 			return new GenericResponse<>(true, "Data retreived successfully", keyValueMap);
 		}
@@ -248,11 +261,12 @@ public class AdmbillServiceImpl implements AdmbillEntryService {
 			long legalAcMajorCount = entityRepository.countByGSTRCConditions(acMajor);
 			long securityAcMajorCount = entityRepository.countByEntClassAndEntChar1(acMajor);
 			String validMinors = glchartRepository.findValidMinorByChartAcnum(acMajor);
+			String expClass = referRepository.findByReferCK_RefReftypeAndReferCK_RefRefcodeAndRefAcmajor(acMajor);
 
 			PartyIsLegalOrSecurityResponseBean partyIsLegalOrSecurityResponseBean = PartyIsLegalOrSecurityResponseBean
 					.builder().isLegal(legalAcMajorCount > 0 ? true : false)
 					.isSecurity(securityAcMajorCount > 0 ? true : false)
-					.isDisabled(validMinors == null || validMinors.isEmpty()).build();
+					.isDisabled(validMinors == null || validMinors.isEmpty()).expClass(expClass).build();
 
 			return new GenericResponse<>(true, "Data retreived successfully .", partyIsLegalOrSecurityResponseBean);
 
@@ -1186,6 +1200,50 @@ public class AdmbillServiceImpl implements AdmbillEntryService {
 			return true;
 		} catch (ParseException e) {
 			return false;
+		}
+	}
+	
+	@Override
+	public GenericResponse<Boolean> fetchPartyAlreadyExistsForPeriod(
+			FetchPartyAlreadyExistsRequest fetchPartyAlreadyExistsRequest) {
+
+		try {
+
+			Integer billCount = admbillhRepository.fetchBillCount(fetchPartyAlreadyExistsRequest.getCompanyCode(),
+					fetchPartyAlreadyExistsRequest.getPartyType(), fetchPartyAlreadyExistsRequest.getPartyCode(),
+					fetchPartyAlreadyExistsRequest.getBuildingCode(), fetchPartyAlreadyExistsRequest.getAcMajor(),
+					fetchPartyAlreadyExistsRequest.getFromDate(), fetchPartyAlreadyExistsRequest.getToDate());
+
+			return new GenericResponse<>(true, "Data retreived successfully .", billCount > 0 ? true : false);
+
+		} catch (Exception e) {
+			log.info("Error :", e);
+			return new GenericResponse<>(false, "Data retreival falied .");
+		}
+	}
+
+	@Override
+	public GenericResponse<Double> fetchTdsPercentage(TdsRequest tdsRequest) {
+		try {
+			Double tdsPercentage = 0d;
+			LocalDate date = LocalDate.now();
+
+			Party party = partyRepository.findByPartyCodeAndParPartytypeAndBillDate(tdsRequest.getPartyCode(),
+					tdsRequest.getPartyType(), date);
+
+			String aadharPanLinkedYN = Objects.isNull(party.getParAadharPanLinkedYN()) ? ""
+					: party.getParAadharPanLinkedYN();
+
+			if (aadharPanLinkedYN.equalsIgnoreCase("N")) {
+				tdsPercentage = entityRepository
+						.findByEntityCk_EntClassAndEntityCk_EntIdBetweenEntityDates2(tdsRequest.getSuppBillDate());
+			}
+
+			return new GenericResponse<>(true, "Data retreived successfully .", tdsPercentage);
+
+		} catch (Exception e) {
+			log.info("Error :", e);
+			return new GenericResponse<>(false, "Data retreival falied .");
 		}
 	}
 

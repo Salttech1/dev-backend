@@ -1,6 +1,5 @@
 package kraheja.enggsys.repository;
 
-import java.time.LocalDate;
 import java.util.List;
 
 import javax.persistence.Tuple;
@@ -9,7 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import kraheja.enggsys.entity.Lcauth;
 import kraheja.enggsys.entity.Lccert;
 import kraheja.enggsys.entity.LccertCK;
 
@@ -32,4 +30,12 @@ public interface LccertRepository extends JpaRepository<Lccert, LccertCK> {
 	@Query("SELECT e FROM Lccert e WHERE TRIM(e.lccertCK.lcerCertnum) IN :authNumList")
 	List<Lccert> findByLccertCK_LcerCertnumIn(List<String> authNumList);
 	
+	@Query(value = "SELECT lcer_certnum,lcer_certtype, lcer_runser, lcer_certdate, lcer_prv_Durfrom, lcer_prv_durto, lcer_certamount,"
+			+ "(SELECT sum(lcer_payamount) FROM lccert a WHERE a.lcer_contract = b.lcer_contract and lcer_certnum <= ? ) AS TotPayment, lcer_tot_twoptc,"
+			+ "lcer_prop as proprietor, lcer_coy as company, lcer_project as project, lcer_property as proprty, lcer_bldgcode as building, "
+			+ "lcer_workcode as workCode, lcer_partycode as partyCode,lcer_partytype as partyType"
+			+ " FROM lccert b WHERE lcer_certnum = ?", nativeQuery = true)
+	Tuple retrieveHeaderDetailsForLCCert(String certNum, String certNum1);
+	
+	Lccert findByLccertCK_LcerCertnum(String certNum);
 }

@@ -135,5 +135,8 @@ public interface EntityRepository extends JpaRepository<DbEntity, EntityCK> {
 
 	@Query("SELECT COUNT(e) FROM DbEntity e WHERE trim(e.entityCk.entClass) = 'GSTRC' AND trim(e.entityCk.entChar1) = :acMajor AND e.entityCk.entChar3 IS NULL AND (trim(e.entityCk.entId) = '02' OR trim(e.entityCk.entId) = '01')")
 	long countByGSTRCConditions(String acMajor);
+	
+	@Query(value="Select ent_num1 from entity where ent_class = 'TDSPA' AND ent_id = 'AAPAN' AND :suppBillDate between ent_date1 and ent_date2", nativeQuery=true)
+	public Double findByEntityCk_EntClassAndEntityCk_EntIdBetweenEntityDates2(LocalDate suppBillDate);
 
 }

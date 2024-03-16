@@ -252,11 +252,11 @@ public class InvoiceCreationServiceImpl implements InvoiceCreationService {
 
 				String acMajor = "20402005";
 
-				String strLocAccCodeAcMinor = null;
-				String strLocAccParty = null;
-				String strLocAccPartyType = null;
-				String strLocAccMinType = null;
-				String strLocAccMinCode = null;
+				String strLocAccCodeAcMinor = "";
+				String strLocAccParty = "";
+				String strLocAccPartyType = "";
+				String strLocAccMinType = "";
+				String strLocAccMinCode = "";
 
 				List<String> glchartList = glchartRepository.findValidMinorAndValidPartiesByCharAcnum(acMajor);
 
@@ -266,11 +266,11 @@ public class InvoiceCreationServiceImpl implements InvoiceCreationService {
 
 				String validParty = glchart.substring(glchart.indexOf(',') + 1);
 
-				String strLocXAccCodeAcMinor = null;
-				String strLocXAccParty = null;
-				String strLocXAccPartyType = null;
-				String strLocXAccMinType = null;
-				String strLocxAccMinCode = null;
+				String strLocXAccCodeAcMinor = "";
+				String strLocXAccParty = "";
+				String strLocXAccPartyType = "";
+				String strLocXAccMinType = "";
+				String strLocxAccMinCode = "";
 
 				int strLocXBunNum;
 

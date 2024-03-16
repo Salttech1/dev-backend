@@ -30,6 +30,9 @@ public interface AddressRepository extends JpaRepository<Address, AddressCK>, Cr
 	@Query(value = "SELECT adr_state FROM address WHERE trim(adr_adsegment) = 'BLDG' AND trim(adr_adowner) = :buildingCode AND trim(adr_adtype) IN ('PMT', 'LOC')", nativeQuery = true)
 	String fetchStateDetails(String buildingCode);
 
+	@Query(value = "select * from address where trim(adr_adowner) = :partyCode and adr_adtype='LOC' and adr_adsegment='PARTY'", nativeQuery = true)
+	Address fetchByPartyCode(String partyCode);
+	
 	@Modifying
 	@Query("delete Address e WHERE trim(e.addressCK.adrAdowner) = :partyCode AND trim(e.addressCK.adrAdsegment) = :adrAdsegment AND trim(e.addressCK.adrAdtype) = :addresstype AND trim(e.addressCK.adrAdser)= :adrAdser")
 	public void deleteByAdrAdownerAndAdrAdsegmentAndAdrAdtypeAndAdrAdser(String partyCode, String adrAdsegment,
